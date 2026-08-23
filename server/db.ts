@@ -1,11 +1,20 @@
-import { eq } from "drizzle-orm";
+import { desc, eq } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
-import { InsertUser, users } from "../drizzle/schema";
-import { ENV } from './_core/env';
+import {
+  articles,
+  contactMessages,
+  downloads,
+  emailSubscribers,
+  freePlanSignups,
+  futureProducts,
+  InsertUser,
+  users,
+} from "../drizzle/schema";
+import { articleSeeds, serializeArticleBody } from "./articleSeed";
+import { ENV } from "./_core/env";
 
 let _db: ReturnType<typeof drizzle> | null = null;
 
-// Lazily create the drizzle instance so local tooling can run without a DB.
 export async function getDb() {
   if (!_db && process.env.DATABASE_URL) {
     try {
@@ -19,74 +28,111 @@ export async function getDb() {
 }
 
 export async function upsertUser(user: InsertUser): Promise<void> {
-  if (!user.openId) {
-    throw new Error("User openId is required for upsert");
-  }
-
+  if (!user.openId) throw new Error("User openId is required for upsert");
   const db = await getDb();
-  if (!db) {
-    console.warn("[Database] Cannot upsert user: database not available");
-    return;
+  if (!db) return;
+  const values: InsertUser = { openId: user.openId };
+  const updateSet: Record<string, unknown> = {};
+  (["name", "email", "loginMethod"] as const).forEach((field) => {
+    if (user[field] !== undefined) {
+      values[field] = user[field] ?? null;
+      updateSet[field] = user[field] ?? null;
+    }
+  });
+  values.lastSignedIn = user.lastSignedIn ?? new Date();
+  updateSet.lastSignedIn = values.lastSignedIn;
+  if (user.role !== undefined) {
+    values.role = user.role;
+    updateSet.role = user.role;
+  } else if (user.openId === ENV.ownerOpenId) {
+    values.role = "admin";
+    updateSet.role = "admin";
   }
-
-  try {
-    const values: InsertUser = {
-      openId: user.openId,
-    };
-    const updateSet: Record<string, unknown> = {};
-
-    const textFields = ["name", "email", "loginMethod"] as const;
-    type TextField = (typeof textFields)[number];
-
-    const assignNullable = (field: TextField) => {
-      const value = user[field];
-      if (value === undefined) return;
-      const normalized = value ?? null;
-      values[field] = normalized;
-      updateSet[field] = normalized;
-    };
-
-    textFields.forEach(assignNullable);
-
-    if (user.lastSignedIn !== undefined) {
-      values.lastSignedIn = user.lastSignedIn;
-      updateSet.lastSignedIn = user.lastSignedIn;
-    }
-    if (user.role !== undefined) {
-      values.role = user.role;
-      updateSet.role = user.role;
-    } else if (user.openId === ENV.ownerOpenId) {
-      values.role = 'admin';
-      updateSet.role = 'admin';
-    }
-
-    if (!values.lastSignedIn) {
-      values.lastSignedIn = new Date();
-    }
-
-    if (Object.keys(updateSet).length === 0) {
-      updateSet.lastSignedIn = new Date();
-    }
-
-    await db.insert(users).values(values).onDuplicateKeyUpdate({
-      set: updateSet,
-    });
-  } catch (error) {
-    console.error("[Database] Failed to upsert user:", error);
-    throw error;
-  }
+  await db.insert(users).values(values).onDuplicateKeyUpdate({ set: updateSet });
 }
 
 export async function getUserByOpenId(openId: string) {
   const db = await getDb();
-  if (!db) {
-    console.warn("[Database] Cannot get user: database not available");
-    return undefined;
-  }
-
+  if (!db) return undefined;
   const result = await db.select().from(users).where(eq(users.openId, openId)).limit(1);
-
-  return result.length > 0 ? result[0] : undefined;
+  return result[0];
 }
 
-// TODO: add feature queries here as your schema grows.
+async function seedArticlesIfNeeded(db: NonNullable<Awaited<ReturnType<typeof getDb>>>) {
+  const existing = await db.select({ id: articles.id }).from(articles).limit(1);
+  if (existing.length > 0) return;
+  await db.insert(articles).values(
+    articleSeeds.map((article) => ({
+      slug: article.slug,
+      title: article.title,
+      excerpt: article.excerpt,
+      body: serializeArticleBody(article),
+      category: article.category,
+      published: 1,
+    })),
+  );
+}
+
+async function seedProductsIfNeeded(db: NonNullable<Awaited<ReturnType<typeof getDb>>>) {
+  const existing = await db.select({ id: futureProducts.id }).from(futureProducts).limit(1);
+  if (existing.length > 0) return;
+  await db.insert(futureProducts).values([
+    { title: "8-Week Home Fat Loss Challenge", description: "A structured future PDF plan with home and gym options.", price: "Coming soon", status: "coming_soon" },
+    { title: "12-Week Beginner Muscle Plan", description: "A clear progressive plan for building strength and muscle.", price: "Coming soon", status: "coming_soon" },
+  ]);
+}
+
+export async function listPublishedArticles() {
+  const db = await getDb();
+  if (!db) return articleSeeds.map((article, index) => ({ id: index + 1, ...article, body: serializeArticleBody(article), published: 1 }));
+  await seedArticlesIfNeeded(db);
+  return db.select().from(articles).where(eq(articles.published, 1)).orderBy(desc(articles.createdAt));
+}
+
+export async function getPublishedArticle(slug: string) {
+  const db = await getDb();
+  if (!db) {
+    const article = articleSeeds.find((entry) => entry.slug === slug);
+    return article ? { id: articleSeeds.indexOf(article) + 1, ...article, body: serializeArticleBody(article), published: 1 } : undefined;
+  }
+  await seedArticlesIfNeeded(db);
+  const result = await db.select().from(articles).where(eq(articles.slug, slug)).limit(1);
+  return result[0];
+}
+
+export async function listFutureProducts() {
+  const db = await getDb();
+  if (!db) return [
+    { id: 1, title: "8-Week Home Fat Loss Challenge", description: "A structured future PDF plan with home and gym options.", price: "Coming soon", status: "coming_soon" },
+    { id: 2, title: "12-Week Beginner Muscle Plan", description: "A clear progressive plan for building strength and muscle.", price: "Coming soon", status: "coming_soon" },
+  ];
+  await seedProductsIfNeeded(db);
+  return db.select().from(futureProducts).orderBy(desc(futureProducts.createdAt));
+}
+
+export async function addNewsletterSubscriber(input: { name?: string; email: string; source: string }) {
+  const db = await getDb();
+  if (!db) return { success: true, persisted: false };
+  await db.insert(emailSubscribers).values({ name: input.name || null, email: input.email, consent: 1, source: input.source }).onDuplicateKeyUpdate({ set: { name: input.name || null, source: input.source, consent: 1 } });
+  return { success: true, persisted: true };
+}
+
+export async function addFreePlanSignup(input: { name: string; email: string }) {
+  const db = await getDb();
+  if (!db) return { success: true, persisted: false };
+  await db.insert(freePlanSignups).values({ name: input.name, email: input.email, planName: "7-Day Fat Loss Starter", status: "requested" });
+  await db.insert(downloads).values({ email: input.email, resourceName: "7-Day Fat Loss Starter", status: "pending_delivery" });
+  await addNewsletterSubscriber({ name: input.name, email: input.email, source: "free_plan" });
+  return { success: true, persisted: true };
+}
+
+export async function addWaitlistRequest(input: { name?: string; email: string }) {
+  return addNewsletterSubscriber({ ...input, source: "paid_plan_waitlist" });
+}
+
+export async function addContactMessage(input: { name: string; email: string; message: string }) {
+  const db = await getDb();
+  if (!db) return { success: true, persisted: false };
+  await db.insert(contactMessages).values(input);
+  return { success: true, persisted: true };
+}

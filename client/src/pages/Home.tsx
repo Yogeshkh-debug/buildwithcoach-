@@ -1,33 +1,41 @@
-import { useAuth } from "@/_core/hooks/useAuth";
-import { Button } from "@/components/ui/button";
-import { Loader2 } from "lucide-react";
-import { Streamdown } from 'streamdown';
+import { ArticleCard, CalculatorPanel, EmailPopup, FaqAccordion, FreePlanForm, Marquee, NewsletterForm, PlanTray, ProgramCarousel, SectionHeading, SiteFooter, SiteHeader } from "@/components/SiteComponents";
+import type { PublicArticle } from "@/lib/content";
+import { trpc } from "@/lib/trpc";
+import { ArrowDownRight, ArrowRight, Check, Dumbbell, Flame, HeartPulse, MoveRight, Sparkles } from "lucide-react";
+import { useState } from "react";
+import { Link, useLocation } from "wouter";
 
-/**
- * All content in this page are only for example, replace with your own feature implementation
- * When building pages, remember your instructions in Frontend Workflow, Frontend Best Practices, Design Guide and Common Pitfalls
- */
+function usePlanJump() {
+  const [location, setLocation] = useLocation();
+  return () => { if (location !== "/") { setLocation("/"); window.setTimeout(() => document.querySelector("#free-plan")?.scrollIntoView({ behavior: "smooth" }), 80); } else document.querySelector("#free-plan")?.scrollIntoView({ behavior: "smooth" }); };
+}
+
 export default function Home() {
-  // The useAuth hook provides authentication state.
-  // To implement login/logout, call logout(), or start login from an event
-  // handler: onClick={() => startLogin()} (imported from "@/const"). Never call
-  // startLogin() during render (no href={startLogin()}) — it mints a one-time
-  // nonce cookie and must run only at the moment of navigation.
-  let { user, loading, error, isAuthenticated, logout } = useAuth();
-
-  // If theme is switchable in App.tsx, we can implement theme toggling like this:
-  // const { theme, toggleTheme } = useTheme();
-
-  return (
-    <div className="min-h-screen flex flex-col">
-      <main>
-        {/* Example: lucide-react for icons */}
-        <Loader2 className="animate-spin" />
-        Example Page
-        {/* Example: Streamdown for markdown rendering */}
-        <Streamdown>Any **markdown** content</Streamdown>
-        <Button variant="default">Example Button</Button>
-      </main>
-    </div>
-  );
+  const { data: articles } = trpc.articles.list.useQuery();
+  const [trayOpen, setTrayOpen] = useState(false);
+  const openPlan = usePlanJump();
+  const preview = (articles ?? []).slice(0, 3) as PublicArticle[];
+  return <div className="site-shell">
+    <SiteHeader onPlanTray={() => setTrayOpen(true)} />
+    <PlanTray open={trayOpen} onClose={() => setTrayOpen(false)} onOpenPlan={openPlan} />
+    <main>
+      <section className="hero-section">
+        <div className="hero-copy"><p className="eyebrow">FITNESS FOR REAL LIFE</p><h1>Build muscle.<br /><span>Lose fat.</span><br />No bullshit.</h1><p className="hero-intro">Simple training. Clear nutrition. Real plans for men who are done being shamed for their body.</p><div className="hero-actions"><button className="black-button" type="button" onClick={openPlan}>Get your free 7-day starter <ArrowRight size={17} /></button><Link href="/articles" className="text-link">Read the guides <ArrowDownRight size={17} /></Link></div><div className="hero-proof"><span><Check size={14} /> Home or gym</span><span><Check size={14} /> Beginner friendly</span><span><Check size={14} /> No extreme rules</span></div></div>
+        <div className="hero-visual" aria-label="Abstract Build With Coach strength illustration"><div className="hero-backdrop" /><div className="hero-frame"><div className="hero-halftone" /><div className="coach-figure"><span className="figure-head">B</span><span className="figure-neck" /><span className="figure-body" /><span className="figure-arm left" /><span className="figure-arm right" /><span className="figure-leg left" /><span className="figure-leg right" /></div><div className="rookie-figure"><span className="rookie-head" /><span className="rookie-body" /></div><span className="hero-label">FROM STUCK<br />TO STRUCTURED</span></div><span className="hero-sticker"><Sparkles size={23} /></span></div>
+      </section>
+      <Marquee text="LET’S FIX THE CONFUSION" />
+      <section className="why-section" id="start-here"><div className="why-visual"><div className="why-card"><span>01</span><strong>START WHERE<br />YOU ARE.</strong><p>Not where some shredded stranger says you should be.</p></div><div className="lifted-disc"><Dumbbell size={72} /></div></div><div className="why-copy"><p className="eyebrow">THIS IS FOR YOU IF…</p><h2>You want a plan.<br />Not another pep talk.</h2><p>Maybe you have been called fat and it got stuck in your head. Maybe you are tired of random workout reels. Maybe you do not know whether to start at home or in a gym. Good. You are in the right place.</p><div className="check-list"><span><Check size={16} /> Build a body you respect</span><span><Check size={16} /> Learn food without food fear</span><span><Check size={16} /> Stop restarting every Monday</span></div></div></section>
+      <section className="start-section"><SectionHeading eyebrow="START HERE FIRST" title="Pick your lane. Then do the next useful thing." copy="No need to pretend you have a perfect plan. Choose the problem that feels most real right now." /><div className="path-grid"><Link href="/tools" className="path-card"><span>01</span><Flame size={31} /><h3>Lose fat</h3><p>Get your calorie target, simple food structure, and a realistic place to start.</p><strong>Start cutting <ArrowRight size={16} /></strong></Link><Link href="/articles/bodybuilding-for-beginners" className="path-card blue"><span>02</span><Dumbbell size={31} /><h3>Build muscle</h3><p>Learn the basics that matter before fancy splits, programs, and pointless noise.</p><strong>Start building <ArrowRight size={16} /></strong></Link><Link href="/articles/home-vs-gym-workouts" className="path-card cream"><span>03</span><MoveRight size={31} /><h3>Home or gym</h3><p>Choose the training setting that you will actually keep showing up for.</p><strong>Choose your setup <ArrowRight size={16} /></strong></Link><Link href="/articles/protein-for-men" className="path-card black"><span>04</span><HeartPulse size={31} /><h3>Nutrition basics</h3><p>Protein, calories, and meals that do their job without taking over your life.</p><strong>Eat with structure <ArrowRight size={16} /></strong></Link></div></section>
+      <section className="free-plan-section" id="free-plan"><div className="plan-shape"><span>7</span><small>DAYS</small><i /></div><div className="free-plan-copy"><p className="eyebrow">FREE 7-DAY FAT LOSS STARTER</p><h2>Start today.<br /><em>Seriously.</em></h2><p>No gym? No problem. No clue what to eat? Also fine. This is the simple starting point for men who are done guessing.</p><ul><li><Check size={16} />Simple daily workouts for home or gym</li><li><Check size={16} />Basic calorie and protein guidance</li><li><Check size={16} />A food framework that actually makes sense</li></ul></div><div className="plan-form-wrap"><p>DROP YOUR EMAIL. GET THE PLAN.</p><FreePlanForm /></div></section>
+      <section className="programs-section"><SectionHeading eyebrow="PROGRAMS" title="Pick your plan. Become harder to stop." copy="The free starter is ready. The deeper plans are being built properly, not rushed into a shiny PDF." align="center" /><ProgramCarousel onFreePlan={openPlan} /></section>
+      <section className="article-preview"><div className="article-preview-head"><SectionHeading eyebrow="NO-BS GUIDES" title="Train your brain too." copy="The fitness basics, without the fake intensity." /><Link href="/articles" className="outline-button">See all guides <ArrowRight size={16} /></Link></div><div className="article-grid">{preview.length ? preview.map((article, index) => <ArticleCard article={article} featured={index === 0} key={article.slug} />) : <div className="loading-card">Loading useful things…</div>}</div></section>
+      <section className="tools-section" id="tools"><div className="tools-rail"><span className="eyebrow">FREE TOOLS</span><h2>Numbers that<br />help you <em>start.</em></h2><p>Use the tools. Get a useful number. Then make your plan less complicated.</p><Link href="/tools" className="text-link">Open the tools page <ArrowDownRight size={17} /></Link></div><CalculatorPanel /></section>
+      <section className="four-square-section"><article className="square nutrition"><p className="eyebrow">NUTRITION HUB</p><h3>Food advice without the weird rules.</h3><p>Protein basics, meal structure, eating out, and fat-loss nutrition that works in a normal life.</p><Link href="/articles/protein-for-men">Feed the goal <ArrowDownRight size={16} /></Link></article><article className="square workouts"><p className="eyebrow">WORKOUT VIDEOS</p><h3>Form over flexing.</h3><p>Short demos, warm-up guides, and common mistake fixes are on the way.</p><button type="button" onClick={() => window.alert("Workout videos are coming soon. Start with the free plan in the meantime.")}>See what’s coming <ArrowDownRight size={16} /></button></article><article className="square community"><p className="eyebrow">COMMUNITY / CHALLENGES</p><h3>Do the work. Together.</h3><p>Weekly challenges, accountability, and a future check-in system for men building real momentum.</p><button type="button" onClick={() => window.alert("Community challenges are in development. Join the newsletter for the first announcement.")}>Join the future challenge <ArrowDownRight size={16} /></button></article><article className="square about"><p className="eyebrow">WHY THIS EXISTS</p><h3>No shame. Just a better system.</h3><p>Build With Coach is here to help men feel stronger and more in control without being insulted into action.</p><Link href="/about">Read the story <ArrowDownRight size={16} /></Link></article></section>
+      <section className="results-section"><div><p className="eyebrow">RESULTS, EARNED</p><h2>Real change needs<br />a real system.</h2><p>Every good transformation starts smaller than people expect: a walk, a protein target, a workout you actually repeat. This space is reserved for member stories shared with clear permission as the community grows.</p><div className="story-standards"><span><Check size={14} /> Real people only</span><span><Check size={14} /> Permission before publishing</span><span><Check size={14} /> Progress over perfection</span></div><Link href="/contact" className="outline-button">Share your future story <ArrowRight size={16} /></Link></div><div className="results-placeholder"><span>FUTURE MEMBER STORY</span><strong>your<br />next<br />chapter</strong><small>starts with day one</small></div></section>
+      <section className="faq-section"><div><SectionHeading eyebrow="FAQ" title="Questions are normal. Guessing forever is optional." copy="Start with the answer that gets you moving, then adjust as you learn." /><Link href="/contact" className="text-link">Still have a question? Ask us <ArrowDownRight size={17} /></Link></div><FaqAccordion /></section>
+      <section className="join-section"><div className="join-mark"><span>+</span></div><div><p className="eyebrow">JOIN THE LIST</p><h2>Useful training and nutrition tips.<br /><em>Zero inbox bloat.</em></h2></div><NewsletterForm source="home_join" /></section>
+    </main>
+    <SiteFooter />
+    <EmailPopup />
+  </div>;
 }
