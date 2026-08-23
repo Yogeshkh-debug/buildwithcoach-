@@ -2,7 +2,7 @@ import { calculateCalorieTarget, calculateProteinTarget } from "@shared/fitness"
 import { trpc } from "@/lib/trpc";
 import { articleVisuals, type PublicArticle } from "@/lib/content";
 import { ArrowDownRight, ArrowLeft, ArrowRight, Check, ChevronDown, CircleUserRound, Dumbbell, Menu, Search, ShoppingBag, Sparkles, X } from "lucide-react";
-import { FormEvent, ReactNode, useEffect, useMemo, useState } from "react";
+import { FormEvent, ReactNode, useEffect, useMemo, useRef, useState } from "react";
 import { Link, useLocation } from "wouter";
 
 type ToastState = { tone: "success" | "error"; text: string } | null;
@@ -152,10 +152,17 @@ export function ContactForm() {
 
 export function EmailPopup() {
   const [open, setOpen] = useState(false);
+  const hasShown = useRef(false);
   useEffect(() => {
-    if (sessionStorage.getItem("bwc-plan-popup-dismissed")) return;
-    const timer = window.setTimeout(() => setOpen(true), 12000);
-    const handleScroll = () => { if (window.scrollY / Math.max(1, document.body.scrollHeight - window.innerHeight) > 0.45) setOpen(true); };
+    if (sessionStorage.getItem("bwc-plan-popup-dismissed") || sessionStorage.getItem("bwc-plan-popup-shown")) return;
+    const showOnce = () => {
+      if (hasShown.current) return;
+      hasShown.current = true;
+      sessionStorage.setItem("bwc-plan-popup-shown", "true");
+      setOpen(true);
+    };
+    const timer = window.setTimeout(showOnce, 12000);
+    const handleScroll = () => { if (window.scrollY / Math.max(1, document.body.scrollHeight - window.innerHeight) > 0.45) showOnce(); };
     window.addEventListener("scroll", handleScroll, { passive: true });
     return () => { window.clearTimeout(timer); window.removeEventListener("scroll", handleScroll); };
   }, []);

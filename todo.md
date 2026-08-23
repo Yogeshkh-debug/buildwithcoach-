@@ -28,3 +28,7 @@
 
 - [x] Add a large Build With Coach 💪 footer signature at the final page edge, inspired by the supplied reference.
 - [x] Verify the footer signature at desktop and phone widths and confirm the TypeScript check passes.
+
+- [x] Prevent the newsletter popup from reopening continuously after it has been shown or dismissed.
+- [x] Resize the final Build With Coach 💪 footer signature so all words remain visible on mobile screens.
+- [x] Verified the mobile contact-page footer signature is fully visible and the TypeScript check passes.
