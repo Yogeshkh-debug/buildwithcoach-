@@ -14,7 +14,7 @@
 - [x] Implement functional program carousel, FAQ accordions, email-popup behavior, smooth anchors, footer links, and keyboard/focus states.
 - [x] Add unit tests covering core calculations, validation, and public tRPC procedures.
 - [x] Run typecheck, test suite, production build, and desktop/tablet/mobile visual QA; fix any defects found.
-- [ ] Save a completion checkpoint and provide the website project version to the user.
+- [x] Save a completion checkpoint and provide the website project version to the user.
 
 ## Verification notes
 
@@ -25,3 +25,6 @@
 
 - [x] Refine the consent-safe success-story area to invite future, permission-based member stories without inventing testimonials or results.
 - [x] Add Vitest coverage for invalid newsletter, free-plan, waitlist, and contact capture inputs through the public tRPC procedures.
+
+- [x] Add a large Build With Coach 💪 footer signature at the final page edge, inspired by the supplied reference.
+- [x] Verify the footer signature at desktop and phone widths and confirm the TypeScript check passes.

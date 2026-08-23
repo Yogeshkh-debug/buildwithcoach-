@@ -131,5 +131,9 @@ h1, h2, h3, p { margin: 0; }
 .story-standards { display:flex; flex-wrap:wrap; gap:11px 16px; margin:0 0 26px; font-size:10px; font-weight:800; }
 .story-standards span { display:inline-flex; align-items:center; gap:5px; }
 .story-standards svg { color:var(--mist-dark); }
+.footer-signature { padding:28px 24px 16px; overflow:hidden; border-top:1px solid #4c5555; color:white; font:clamp(42px,9.5vw,151px)/.78 var(--display); letter-spacing:-.095em; text-align:center; text-transform:uppercase; white-space:nowrap; }
+.footer-signature strong { color:var(--mist-dark); }
+.footer-signature span { display:inline-block; margin-left:.03em; font-family:var(--body); font-size:.58em; letter-spacing:0; transform:translateY(-.08em) rotate(-8deg); }
+@media (max-width:720px) { .footer-signature { padding:22px 8px 12px; font-size:clamp(36px,11.4vw,58px); letter-spacing:-.085em; } }
 
 @media (prefers-reduced-motion: reduce) { *, *:before, *:after { scroll-behavior:auto !important; transition-duration:.01ms !important; animation-duration:.01ms !important; animation-iteration-count:1 !important; } }
