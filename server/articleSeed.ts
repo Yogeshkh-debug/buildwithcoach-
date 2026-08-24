@@ -93,6 +93,36 @@ export const articleSeeds: ArticleSeed[] = [
     ],
     cta: "Start with the Free 7-Day Fat Loss Starter.",
   },
+  {
+    slug: "warm-up-that-actually-helps",
+    title: "Warm Up Before You Lift: 7 Minutes That Actually Helps",
+    excerpt: "Get warm, practise the movement, then lift. Stop turning the warm-up into another workout.",
+    category: "Workout prep",
+    intro: ["A warm-up has one job: make your first working set feel like a continuation, not a surprise attack.", "You do not need twenty random drills and a phone timer. You need a little heat, the movement you are about to train, and a few lighter sets."],
+    sections: [
+      { title: "The Strict Coach Rule", paragraphs: ["Warm up for the workout you are about to do. Do not copy a circus routine because someone online had fancy bands.", "If you are squatting, prepare to squat. If you are pressing, prepare to press. Keep the goal obvious."] },
+      { title: "The Simple 7-Minute Warm-Up", paragraphs: ["Use this before most beginner strength sessions. Keep the pace easy enough to breathe, but not so easy that nothing changes."], bullets: ["2 minutes brisk walking, cycling, or marching", "8 controlled bodyweight squats", "8 hip hinges with hands on thighs", "8 wall or incline push-ups", "10 band pull-aparts or slow arm circles", "2 to 3 lighter practice sets of your first exercise"] },
+      { title: "Before Your First Working Set", paragraphs: ["Your first proper set should not be the first time you feel the movement today. Build up with lighter weight and cleaner reps.", "For a squat, press, row, or deadlift pattern, take two or three lighter sets before the weight that challenges you."] },
+      { title: "Common Warm-Up Mistakes", paragraphs: ["Most people do too little preparation or turn preparation into a twenty-minute distraction. Both miss the point."], bullets: ["Starting your heaviest set cold", "Static stretching for ages instead of moving", "Doing hard cardio that steals energy from lifting", "Using so many drills that you arrive tired", "Skipping lighter practice sets because you are impatient"] },
+      { title: "What Pain Is Telling You", paragraphs: ["Normal effort and normal muscle warmth are one thing. Sharp, worsening, or unusual pain is not a toughness test. Stop the movement and get qualified help if it does not settle."] },
+    ],
+    cta: "Warm up, train with purpose, then use the Free 7-Day Fat Loss Starter to make the rest of the session simple.",
+  },
+  {
+    slug: "fix-common-training-mistakes",
+    title: "5 Training Mistakes That Waste Your Workouts",
+    excerpt: "More sweat is not better training. Fix these simple mistakes and make each rep count.",
+    category: "Form fixes",
+    intro: ["You do not need perfect genetics or a loud gym personality. You do need to stop wasting good effort on sloppy habits.", "Fix one thing at a time. Training gets better when your next rep has a purpose."],
+    sections: [
+      { title: "Mistake 1: Rushing Every Rep", paragraphs: ["Fast reps can hide weak positions. Slow the lowering phase just enough to control it, then use a steady, deliberate lift.", "If you cannot control the weight, it is controlling you."] },
+      { title: "Mistake 2: Adding Weight Before You Earn It", paragraphs: ["More weight is only progress when your form survives it. First add clean reps. Then add a small amount of load.", "Your ego does not get credit for the rep. Your muscles do."] },
+      { title: "Mistake 3: Changing Your Plan Every Week", paragraphs: ["A new exercise is not automatically a better exercise. Keep the core movements long enough to learn them and measure progress.", "Use the same main lifts for several weeks before deciding they do not work."] },
+      { title: "Mistake 4: Training to Exhaustion Every Time", paragraphs: ["Leave one or two clean reps in reserve on most sets. You are building a repeatable week, not auditioning for a collapse montage.", "Hard training is useful. Destroying tomorrow’s session is not."] },
+      { title: "Mistake 5: Ignoring the Basics", paragraphs: ["The boring pieces still win: warm up, use a load you can control, track the main lifts, eat enough protein, and sleep like it matters."], bullets: ["Warm up for the movement", "Use full, controlled range you can own", "Log reps and load", "Stop a set when form breaks down", "Repeat the plan next week"] },
+    ],
+    cta: "Fix the basics first, then use the Free 7-Day Fat Loss Starter to give those basics a plan.",
+  },
 ];
 
 export function serializeArticleBody(article: ArticleSeed) {

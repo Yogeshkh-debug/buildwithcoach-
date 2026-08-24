@@ -32,3 +32,8 @@
 - [x] Prevent the newsletter popup from reopening continuously after it has been shown or dismissed.
 - [x] Resize the final Build With Coach 💪 footer signature so all words remain visible on mobile screens.
 - [x] Verified the mobile contact-page footer signature is fully visible and the TypeScript check passes.
+
+- [x] Add simple strict-coach warm-up guidance and common-mistake fixes to the workout content.
+- [x] Update the community story invitation to say “Share your story — we’ll stick it” while retaining the permission-first policy.
+- [x] Ensure every guide route scrolls to its header when opened so readers begin at the top.
+- [x] Verified the new warm-up guide opens with no prior scroll position, and the guide library exposes both new strict-coach guides.

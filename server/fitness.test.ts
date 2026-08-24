@@ -25,7 +25,7 @@ describe("public article procedures", () => {
     const ctx = { user: null, req: {} as TrpcContext["req"], res: {} as TrpcContext["res"] } as TrpcContext;
     const caller = appRouter.createCaller(ctx);
     const articles = await caller.articles.list();
-    expect(articles).toHaveLength(5);
+    expect(articles).toHaveLength(7);
     expect(articles[0]).toHaveProperty("slug");
   });
 });

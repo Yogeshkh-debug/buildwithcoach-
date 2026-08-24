@@ -59,10 +59,12 @@ export async function getUserByOpenId(openId: string) {
 }
 
 async function seedArticlesIfNeeded(db: NonNullable<Awaited<ReturnType<typeof getDb>>>) {
-  const existing = await db.select({ id: articles.id }).from(articles).limit(1);
-  if (existing.length > 0) return;
+  const existing = await db.select({ slug: articles.slug }).from(articles);
+  const existingSlugs = new Set(existing.map((article) => article.slug));
+  const missingSeeds = articleSeeds.filter((article) => !existingSlugs.has(article.slug));
+  if (missingSeeds.length === 0) return;
   await db.insert(articles).values(
-    articleSeeds.map((article) => ({
+    missingSeeds.map((article) => ({
       slug: article.slug,
       title: article.title,
       excerpt: article.excerpt,
