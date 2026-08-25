@@ -35,4 +35,6 @@ export const articleVisuals: Record<string, string> = {
   "home-vs-gym-workouts": "visual-orbit",
   "protein-for-men": "visual-fuel",
   "why-you-keep-quitting": "visual-ladder",
+  "creatine-safety-basics": "visual-creatine-placeholder",
+  "when-to-take-whey-protein": "visual-whey-placeholder",
 };

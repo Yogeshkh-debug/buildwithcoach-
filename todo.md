@@ -61,3 +61,15 @@
 
 - [x] Capture browser-inspectable desktop and mobile QA evidence for the popup Thank You confirmation without saving a test signup.
 - [x] Confirmed the desktop popup exposes the Thank You message and return control in-browser; mobile screenshot QA confirmed readable, unclipped presentation.
+
+- [x] Prevent the homepage proof text from clipping at mobile width.
+- [x] Remove the duplicate “Share your story — we’ll stick it” prompt while keeping the community submission form.
+- [x] Replace the click-only program carousel behavior with a smooth, touch-friendly scrolling PDF-style program strip.
+- [x] Add only the requested creatine and whey-protein articles, with no video embeds and reserved image placeholders for later user-supplied assets.
+- [x] Verify the updated layout, scrolling program strip, and new article routes on desktop and mobile.
+- [x] Stabilize the guide-list test timeout during database-backed article seeding.
+- [x] Final verification passed: desktop/mobile layout checks, no-video supplement routes, TypeScript check, 9 unit tests, and production build.
+
+- [x] Exercise the scrolling PDF-style program strip at desktop and mobile widths and verify smooth, unclipped interaction.
+- [x] Verify a new supplement guide at mobile width without any video embed before final sign-off.
+- [x] Confirmed desktop next-control scrolling, mobile program-strip framing, mobile proof-row visibility, and the no-video supplement-guide route behavior.

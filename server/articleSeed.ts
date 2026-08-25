@@ -123,6 +123,36 @@ export const articleSeeds: ArticleSeed[] = [
     ],
     cta: "Fix the basics first, then use the Free 7-Day Fat Loss Starter to give those basics a plan.",
   },
+  {
+    slug: "creatine-safety-basics",
+    title: "Is Creatine Bad for You? A Straight Answer",
+    excerpt: "The practical safety facts, the myths, and the small group that should ask a clinician first.",
+    category: "Nutrition & supplements",
+    intro: ["Creatine gets blamed for almost everything: kidney problems, hair loss, bloating, and weight gain. Most of that fear comes from half-read claims rather than a clear look at the evidence.", "Here is the useful version: for most healthy adults, creatine monohydrate is one of the better-studied supplements. It is still a supplement, not a personality, and it does not replace training, food, or sleep."],
+    sections: [
+      { title: "What Creatine Actually Does", paragraphs: ["Creatine helps the body rapidly remake ATP during short, hard efforts such as lifting, sprinting, and repeated high-intensity work. Your body makes some and you also get some from animal foods.", "A supplement simply increases the amount stored in muscle. The simple, commonly used option is creatine monohydrate."] },
+      { title: "Kidneys and Long-Term Use", paragraphs: ["In healthy adults using normal amounts, current research does not show creatine monohydrate damaging kidney function. Blood creatinine can rise because it is a by-product related to creatine, which can confuse the picture if context is ignored.", "If you have kidney disease, take medication that affects kidney function, or have been told to limit supplements, do not guess. Speak with your clinician first."] },
+      { title: "Hair Loss, Bloating, and Scale Weight", paragraphs: ["Current evidence does not show that normal creatine use causes hair loss. A single old study is often repeated online, but it did not measure hair loss itself.", "Some people gain a little scale weight from water held inside muscle. That is not fat gain. Large single doses can upset the stomach for some people, so keep the dose sensible and take it with food if needed."] },
+      { title: "The Practical Dose", paragraphs: ["You do not need a loading phase and you do not need to cycle it. A consistent 3–5 grams of creatine monohydrate per day is a simple approach for most healthy adults.", "Pick a time you will remember. Daily consistency matters more than obsessing over a perfect clock time."], bullets: ["Choose plain creatine monohydrate", "Use 3–5 g daily", "Drink normally and eat normally", "Stop if you have an unusual reaction and get advice"] },
+      { title: "The Strict Coach Verdict", paragraphs: ["Creatine can support training. It cannot rescue a plan you do not follow. Nail your workouts, protein, calories, and sleep first. Then decide if this small tool is worth adding."] },
+    ],
+    cta: "Get your training and food basics in place with the Free 7-Day Fat Loss Starter before you worry about supplements.",
+  },
+  {
+    slug: "when-to-take-whey-protein",
+    title: "When to Take Whey Protein for Useful Results",
+    excerpt: "The best time is the time that helps you hit your daily protein target without making life harder.",
+    category: "Nutrition & supplements",
+    intro: ["People turn protein timing into a stress test. They carry a shaker around like a fire alarm, worried they will miss a magical post-workout window.", "The boring truth wins: daily protein intake is the main job. Whey is simply a convenient way to fill a gap when food is not practical."],
+    sections: [
+      { title: "What Whey Protein Is For", paragraphs: ["Whey is a fast, convenient protein source. It is not better than a solid meal just because it comes in a scoop.", "Use it when it helps you reach a useful daily target, especially when a meal is not available or your meals run low on protein."] },
+      { title: "After Training", paragraphs: ["A shake after training is convenient, but you do not need to panic if you eat a protein-rich meal later. Get a normal protein serving within the next few hours and keep your total day on track.", "If you trained fasted or will not eat soon, whey after the session can be a practical move."] },
+      { title: "Morning, Between Meals, and Rest Days", paragraphs: ["Whey can work in the morning, between meals, or on rest days. Those are all useful times if they stop you from ending the day well below your protein target.", "Before bed, a slower food-based protein source may keep you fuller, but the bigger point is still the same: do what you can repeat."] },
+      { title: "Common Mistakes", paragraphs: ["Do not use whey as an excuse to ignore real meals. Do not double-scoop because marketing made you nervous. And do not treat timing as more important than total intake."], bullets: ["Skipping meals and living on shakes", "Using whey while total protein stays low", "Obsessing over the exact minute after lifting", "Forgetting fiber, fruit, and normal food"] },
+      { title: "The Strict Coach Rule", paragraphs: ["First build meals around protein. Use whey to close the gap, not to make the plan look more serious. If it helps you hit your target consistently, it is doing its job."] },
+    ],
+    cta: "Use the Free 7-Day Fat Loss Starter to set a realistic protein target and make every meal do some work.",
+  },
 ];
 
 export function serializeArticleBody(article: ArticleSeed) {

@@ -163,4 +163,21 @@ h1, h2, h3, p { margin: 0; }
 @keyframes popup-success-in { from { opacity:0; transform:translateY(12px); } to { opacity:1; transform:translateY(0); } }
 @keyframes success-mark-pop { from { opacity:0; transform:scale(.92) rotate(-8deg); } to { opacity:1; transform:scale(1) rotate(0); } }
 
+.article-grid { grid-template-columns:repeat(2,minmax(0,1fr)); max-width:930px; }
+.visual-creatine-placeholder, .visual-whey-placeholder { background:linear-gradient(135deg,var(--mist) 0 63%,var(--pale) 63%); }
+.article-image-placeholder { width:100%; height:100%; display:grid; place-items:center; align-content:center; gap:8px; border:1.5px dashed var(--ink); background:rgba(255,255,255,.48); color:var(--ink); }
+.article-image-placeholder small { font:9px var(--mono); text-align:center; }
+
+.program-carousel { max-width:none; margin:54px calc(50% - 50vw) 0; overflow:hidden; }
+.program-strip { display:flex; gap:22px; overflow-x:auto; overscroll-behavior-x:contain; scroll-snap-type:x mandatory; scroll-behavior:smooth; padding:10px max(7vw,32px) 22px; scrollbar-width:thin; scrollbar-color:var(--ink) transparent; }
+.program-strip::-webkit-scrollbar { height:8px; }.program-strip::-webkit-scrollbar-thumb { background:var(--ink); }
+.program-pdf { flex:0 0 min(78vw,850px); min-height:470px; display:grid; grid-template-columns:.82fr 1fr; scroll-snap-align:center; border:2px solid var(--ink); background:var(--paper); box-shadow:8px 8px 0 var(--mist-dark); overflow:hidden; }
+.program-pdf-cover { min-height:100%; padding:24px; position:relative; display:grid; place-items:center; overflow:hidden; border-right:2px solid var(--ink); background:var(--mist); }.program-pdf.home .program-pdf-cover { background:#e9e2cf; }.program-pdf.muscle .program-pdf-cover { background:var(--lime); }
+.program-pdf-cover > svg, .program-pdf-cover > strong, .program-pdf-cover > small { position:relative; z-index:2; }.program-pdf-cover > strong { max-width:240px; text-align:center; font:clamp(33px,4vw,56px)/.84 var(--display); letter-spacing:-.08em; text-transform:uppercase; }.program-pdf-cover > small { margin-top:15px; font:9px var(--mono); }.program-pdf-cover .program-ring { width:220px; height:220px; }.program-pdf-cover .program-dots { width:190px; height:190px; }
+.program-pdf-count { position:absolute; left:18px; top:17px; z-index:3; font:30px/.8 var(--display); letter-spacing:-.08em; }.program-pdf-count small { font:9px var(--mono); letter-spacing:0; }.program-pdf-stamp { position:absolute; right:17px; top:18px; z-index:3; text-align:right; font:8px/.95 var(--mono); text-transform:uppercase; }
+.program-pdf-copy { display:flex; flex-direction:column; align-items:flex-start; justify-content:center; padding:42px 38px; }.program-pdf-copy h3 { margin:11px 0 13px; font:clamp(31px,4vw,52px)/.9 var(--display); letter-spacing:-.07em; text-transform:uppercase; }.program-pdf-copy > p:not(.eyebrow) { max-width:350px; font-size:13px; line-height:1.65; }.program-pdf-copy > strong { display:block; margin:18px 0; font:11px var(--mono); text-transform:uppercase; }.program-pdf-copy .black-button { margin-top:auto; }
+.program-carousel .carousel-controls { max-width:920px; margin:0 auto; padding:0 max(7vw,32px); }
+
+@media (max-width:720px) { .hero-proof { width:100%; display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:7px; }.hero-proof span { min-width:0; align-items:flex-start; font-size:9px; line-height:1.25; }.hero-proof svg { flex:none; margin-top:1px; }.article-grid { grid-template-columns:1fr; max-width:none; }.program-carousel { margin-top:35px; }.program-strip { gap:15px; padding:8px 20px 19px; }.program-pdf { flex-basis:86vw; min-height:0; grid-template-columns:1fr; }.program-pdf-cover { min-height:290px; border-right:0; border-bottom:2px solid var(--ink); }.program-pdf-copy { min-height:290px; padding:28px 23px; }.program-pdf-copy h3 { font-size:38px; }.program-carousel .carousel-controls { padding:0 20px; }.program-pdf-cover > strong { font-size:43px; } }
+
 @media (prefers-reduced-motion: reduce) { *, *:before, *:after { scroll-behavior:auto !important; transition-duration:.01ms !important; animation-duration:.01ms !important; animation-iteration-count:1 !important; } }
