@@ -45,3 +45,10 @@
 
 - [x] Verify the community story form at desktop width and correct any spacing or overflow issues.
 - [x] Confirmed on the desktop homepage that the name, email, story, photo chooser, consent checkbox, and submit control are all present and reachable without overflow.
+
+- [x] Replace the existing dark homepage fitness figures with the user-supplied fitness image.
+- [x] Refine the email popup copy to invite subscriptions for useful weekly challenges and consistent progress.
+- [x] Verify the updated hero image and popup copy at desktop and mobile widths.
+- [x] Verified the managed hero image, the weekly-challenges popup message, TypeScript check, and production build.
+
+- [x] Verify the revised weekly-challenges popup content at desktop and mobile widths for clean fit and readability.
