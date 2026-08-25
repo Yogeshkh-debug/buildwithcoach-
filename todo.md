@@ -103,3 +103,12 @@
 - [x] Captured a genuine 375px browser-emulation cart route with Home Zero, its request action, and no horizontal overflow.
 - [x] Captured a genuine 375px browser-emulation PDF-request popup with Home Zero listed and readable name, email, and Request my PDFs controls.
 - [x] Final verification passed after the article-request cache adjustment: TypeScript check, 10 Vitest tests, and production build.
+
+- [x] Replace the remaining supplement-guide reference-derived visuals with the newly supplied approved assets.
+- [x] Add a “How much protein do you need per day?” section and supplied visual inside the whey guide.
+- [x] Add a “How much creatine do you need per day?” section and supplied visual inside the creatine guide, followed by the supplied final-verdict visual.
+- [x] Prepare exact-ratio 8K guide-only versions of the supplied visual assets without adding them to article cards or headers.
+- [x] Refine the four-plan PDF strip with a framed scroll-snap presentation, navigation controls, and tactile touch/click zoom feedback inspired by the supplied motion reference.
+- [x] Verify the guide assets and PDF strip interactions at desktop and phone widths, then run the type, test, and production-build checks.
+- [x] Confirmed the inline creatine and whey assets decode at 7680px wide after entering the viewport; the PDF strip snaps horizontally, arrow navigation advances it, and touch feedback reaches a 1.035 scale before release.
+- [x] Final verification passed: TypeScript check, 11 Vitest tests, and production build. The build retains only the existing non-blocking large-chunk warning.

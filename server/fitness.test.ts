@@ -28,6 +28,23 @@ describe("public article procedures", () => {
     expect(articles).toHaveLength(9);
     expect(articles[0]).toHaveProperty("slug");
   }, 10_000);
+
+  it("includes the requested supplement amount sections and supplied in-guide visuals", async () => {
+    const ctx = { user: null, req: {} as TrpcContext["req"], res: {} as TrpcContext["res"] } as TrpcContext;
+    const caller = appRouter.createCaller(ctx);
+    const creatine = await caller.articles.bySlug({ slug: "creatine-safety-basics" });
+    const whey = await caller.articles.bySlug({ slug: "when-to-take-whey-protein" });
+    const creatineSections = JSON.parse(creatine!.body).sections as Array<{ title: string; visual?: { src: string } }>;
+    const wheySections = JSON.parse(whey!.body).sections as Array<{ title: string; visual?: { src: string } }>;
+
+    expect(creatineSections).toEqual(expect.arrayContaining([
+      expect.objectContaining({ title: "How Much Creatine Do You Need Per Day?", visual: expect.objectContaining({ src: expect.stringContaining("creatine-daily-dose-8k") }) }),
+      expect.objectContaining({ title: "Final Verdict: Should You Take Creatine?", visual: expect.objectContaining({ src: expect.stringContaining("creatine-final-verdict-8k") }) }),
+    ]));
+    expect(wheySections).toEqual(expect.arrayContaining([
+      expect.objectContaining({ title: "How Much Protein Do You Need Per Day?", visual: expect.objectContaining({ src: expect.stringContaining("whey-protein-target-8k") }) }),
+    ]));
+  }, 10_000);
 });
 
 describe("public capture validation", () => {
