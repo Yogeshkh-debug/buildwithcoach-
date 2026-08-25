@@ -155,5 +155,12 @@ h1, h2, h3, p { margin: 0; }
 
 .hero-user-image { width:100%; height:100%; display:block; object-fit:cover; object-position:60% center; }
 .popup-card .popup-weekly { margin-top:10px; color:var(--ink); font-weight:800; }
+.popup-card.success-state { display:grid; min-height:468px; align-items:center; background:var(--pale); }
+.popup-success { display:grid; justify-items:start; gap:15px; max-width:420px; outline:0; animation:popup-success-in .24s var(--ease-out) both; }
+.popup-success-mark { width:70px; height:70px; display:grid; place-items:center; border:2px solid var(--ink); border-radius:50%; background:var(--lime); box-shadow:5px 5px 0 var(--mist-dark); animation:success-mark-pop .28s var(--ease-out) both; }
+.popup-success h2 { margin:0; font:clamp(42px,5vw,66px)/.88 var(--display); letter-spacing:-.08em; text-transform:uppercase; }
+.popup-success > p:not(.eyebrow) { max-width:405px; color:#465052; font-size:14px; line-height:1.65; }
+@keyframes popup-success-in { from { opacity:0; transform:translateY(12px); } to { opacity:1; transform:translateY(0); } }
+@keyframes success-mark-pop { from { opacity:0; transform:scale(.92) rotate(-8deg); } to { opacity:1; transform:scale(1) rotate(0); } }
 
 @media (prefers-reduced-motion: reduce) { *, *:before, *:after { scroll-behavior:auto !important; transition-duration:.01ms !important; animation-duration:.01ms !important; animation-iteration-count:1 !important; } }

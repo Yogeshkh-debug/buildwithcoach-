@@ -1,7 +1,7 @@
 import { calculateCalorieTarget, calculateProteinTarget } from "@shared/fitness";
 import { trpc } from "@/lib/trpc";
 import { articleVisuals, type PublicArticle } from "@/lib/content";
-import { ArrowDownRight, ArrowLeft, ArrowRight, Check, ChevronDown, CircleUserRound, Dumbbell, Menu, Search, ShoppingBag, Sparkles, X } from "lucide-react";
+import { ArrowDownRight, ArrowLeft, ArrowRight, Check, CheckCircle2, ChevronDown, CircleUserRound, Dumbbell, Menu, Search, ShoppingBag, Sparkles, X } from "lucide-react";
 import { FormEvent, ReactNode, useEffect, useMemo, useRef, useState } from "react";
 import { Link, useLocation } from "wouter";
 
@@ -152,7 +152,9 @@ export function ContactForm() {
 
 export function EmailPopup() {
   const [open, setOpen] = useState(false);
+  const [submitted, setSubmitted] = useState(false);
   const hasShown = useRef(false);
+  const successMessage = useRef<HTMLDivElement>(null);
   useEffect(() => {
     if (sessionStorage.getItem("bwc-plan-popup-dismissed") || sessionStorage.getItem("bwc-plan-popup-shown")) return;
     const showOnce = () => {
@@ -166,9 +168,10 @@ export function EmailPopup() {
     window.addEventListener("scroll", handleScroll, { passive: true });
     return () => { window.clearTimeout(timer); window.removeEventListener("scroll", handleScroll); };
   }, []);
+  useEffect(() => { if (submitted) successMessage.current?.focus(); }, [submitted]);
   const close = () => { sessionStorage.setItem("bwc-plan-popup-dismissed", "true"); setOpen(false); };
   if (!open) return null;
-  return <div className="popup-scrim" role="dialog" aria-modal="true" aria-label="Free 7-Day Fat Loss Starter"><div className="popup-card"><button className="popup-close" type="button" onClick={close} aria-label="Close popup"><X size={20} /></button><div className="popup-stamp">7</div><p className="eyebrow">FREE STARTER</p><h2>Stop guessing.<br />Start following a plan.</h2><p>Get the free 7-Day Fat Loss Starter for men who want real results — no extreme diets, no BS.</p><p className="popup-weekly">Subscribe for weekly challenges, practical coaching, and a clear reason to keep building week by week.</p><ul><li><Check size={15} />7 days of simple workouts</li><li><Check size={15} />Clear calorie and protein targets</li><li><Check size={15} />A weekly challenge to keep you building</li></ul><FreePlanForm compact source="popup" onSuccess={() => window.setTimeout(close, 1200)} /><button className="text-button" type="button" onClick={close}>No thanks, I’ll keep guessing.</button></div></div>;
+  return <div className="popup-scrim" role="dialog" aria-modal="true" aria-label={submitted ? "Thank you for subscribing" : "Free 7-Day Fat Loss Starter"}><div className={`popup-card ${submitted ? "success-state" : ""}`}><button className="popup-close" type="button" onClick={close} aria-label="Close popup"><X size={20} /></button>{submitted ? <div className="popup-success" ref={successMessage} tabIndex={-1} role="status"><span className="popup-success-mark"><CheckCircle2 size={38} /></span><p className="eyebrow">YOU’RE IN</p><h2>Thank you.</h2><p>Your free starter is on its way. Watch your inbox for the first useful step, then check back for the weekly challenges that keep you building.</p><button className="black-button" type="button" onClick={close}>Back to the work <ArrowRight size={16} /></button></div> : <><div className="popup-stamp">7</div><p className="eyebrow">FREE STARTER</p><h2>Stop guessing.<br />Start following a plan.</h2><p>Get the free 7-Day Fat Loss Starter for men who want real results — no extreme diets, no BS.</p><p className="popup-weekly">Subscribe for weekly challenges, practical coaching, and a clear reason to keep building week by week.</p><ul><li><Check size={15} />7 days of simple workouts</li><li><Check size={15} />Clear calorie and protein targets</li><li><Check size={15} />A weekly challenge to keep you building</li></ul><FreePlanForm compact source="popup" onSuccess={() => setSubmitted(true)} /><button className="text-button" type="button" onClick={close}>No thanks, I’ll keep guessing.</button></>}</div></div>;
 }
 
 export function Marquee({ text = "BUILD STRONGER HABITS" }: { text?: string }) { return <div className="marquee" aria-label={text}><div>{Array.from({ length: 8 }, (_, index) => <span key={index}>{text} <b>✦</b></span>)}</div></div>; }

@@ -52,3 +52,12 @@
 - [x] Verified the managed hero image, the weekly-challenges popup message, TypeScript check, and production build.
 
 - [x] Verify the revised weekly-challenges popup content at desktop and mobile widths for clean fit and readability.
+
+- [x] Add an immediate, accessible animated Thank You state after a successful popup free-plan email submission.
+- [x] Verify the popup thank-you state at desktop and mobile widths.
+- [x] Verified the success-state code path, TypeScript check, 9 unit tests, and production build.
+
+- [x] Visually verify the animated popup Thank You confirmation at desktop and mobile widths without persisting test signup data.
+
+- [x] Capture browser-inspectable desktop and mobile QA evidence for the popup Thank You confirmation without saving a test signup.
+- [x] Confirmed the desktop popup exposes the Thank You message and return control in-browser; mobile screenshot QA confirmed readable, unclipped presentation.
