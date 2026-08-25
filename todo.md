@@ -73,3 +73,14 @@
 - [x] Exercise the scrolling PDF-style program strip at desktop and mobile widths and verify smooth, unclipped interaction.
 - [x] Verify a new supplement guide at mobile width without any video embed before final sign-off.
 - [x] Confirmed desktop next-control scrolling, mobile program-strip framing, mobile proof-row visibility, and the no-video supplement-guide route behavior.
+
+- [x] Fix the Results section’s Open the Story Form control so it reliably scrolls to the community submission form.
+- [x] Replace the header bag icon with a premium cart control and cart tray.
+- [x] Change every program action to Add to cart and show the email capture popup after a user selects Buy from the cart.
+- [x] Add the approved creatine and whey source images to the respective article cards and guides without video embeds.
+- [x] Verify the story button, cart-to-email flow, article visuals, and responsive layout.
+- [x] Repair the cart drawer opener so an added plan can always be reviewed and purchased.
+- [x] Final verification passed: cart request handoff, story-form focus, managed article images, TypeScript check, 10 unit tests, and production build.
+
+- [x] Verify the premium cart, cart-to-email popup, and supplement-guide images at a phone viewport without clipping or overflow.
+- [x] Confirmed the phone layout retains the premium cart header, readable PDF Add to cart controls, and unclipped supplement-card media treatment.

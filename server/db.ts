@@ -130,6 +130,14 @@ export async function addFreePlanSignup(input: { name: string; email: string }) 
   return { success: true, persisted: true };
 }
 
+export async function addCartRequest(input: { name: string; email: string; planNames: string[] }) {
+  const db = await getDb();
+  if (!db) return { success: true, persisted: false };
+  await db.insert(downloads).values(input.planNames.map((resourceName) => ({ email: input.email, resourceName, status: "pending_delivery" })));
+  await addNewsletterSubscriber({ name: input.name, email: input.email, source: "cart_pdf_request" });
+  return { success: true, persisted: true };
+}
+
 export async function addWaitlistRequest(input: { name?: string; email: string }) {
   return addNewsletterSubscriber({ ...input, source: "paid_plan_waitlist" });
 }

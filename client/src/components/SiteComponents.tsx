@@ -1,7 +1,8 @@
 import { calculateCalorieTarget, calculateProteinTarget } from "@shared/fitness";
 import { trpc } from "@/lib/trpc";
-import { articleVisuals, type PublicArticle } from "@/lib/content";
-import { ArrowDownRight, ArrowLeft, ArrowRight, Check, CheckCircle2, ChevronDown, CircleUserRound, Dumbbell, Menu, Search, ShoppingBag, Sparkles, X } from "lucide-react";
+import { articleImages, articleVisuals, type PublicArticle } from "@/lib/content";
+import { useCart, type CartPlan } from "@/contexts/CartContext";
+import { ArrowDownRight, ArrowLeft, ArrowRight, Check, CheckCircle2, ChevronDown, CircleUserRound, Dumbbell, Menu, Search, ShoppingCart, Sparkles, X } from "lucide-react";
 import { FormEvent, ReactNode, useEffect, useMemo, useRef, useState } from "react";
 import { Link, useLocation } from "wouter";
 
@@ -34,7 +35,7 @@ export function ScrollTop() {
   return null;
 }
 
-export function SiteHeader({ onPlanTray }: { onPlanTray: () => void }) {
+export function SiteHeader() {
   const [location, setLocation] = useLocation();
   const [mobileOpen, setMobileOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
@@ -70,7 +71,7 @@ export function SiteHeader({ onPlanTray }: { onPlanTray: () => void }) {
         <div className="header-actions">
           <button type="button" className="icon-action" onClick={() => setSearchOpen(true)} aria-label="Search guides"><Search size={18} /></button>
           <button type="button" className="icon-action account-control" onClick={() => goTo("/login")} aria-label="Open account"><CircleUserRound size={18} /></button>
-          <button type="button" className="icon-action plan-cart" onClick={onPlanTray} aria-label="Open starter plan tray"><ShoppingBag size={18} /><span>1</span></button>
+          <PremiumCartButton />
         </div>
       </div>
       {mobileOpen ? <nav className="mobile-nav" aria-label="Mobile navigation">
@@ -87,22 +88,22 @@ export function SiteHeader({ onPlanTray }: { onPlanTray: () => void }) {
   </>;
 }
 
-export function PlanTray({ open, onClose, onOpenPlan }: { open: boolean; onClose: () => void; onOpenPlan: () => void }) {
-  if (!open) return null;
-  return <div className="tray-scrim" role="dialog" aria-modal="true" aria-label="Starter plan tray" onMouseDown={onClose}>
-    <aside className="plan-tray" onMouseDown={(event) => event.stopPropagation()}>
-      <button className="tray-close" type="button" onClick={onClose} aria-label="Close tray"><X size={20} /></button>
-      <p className="eyebrow">YOUR STARTER STACK</p>
-      <h2>One plan. One clear next move.</h2>
-      <div className="tray-plan"><span className="mini-shape">7</span><div><strong>7-Day Fat Loss Starter</strong><small>Free · home or gym</small></div></div>
-      <p className="soft-copy">Start with a simple week of training, food structure, and protein targets. No checkout nonsense.</p>
-      <button className="black-button full" type="button" onClick={() => { onClose(); onOpenPlan(); }}>Claim the free plan <ArrowRight size={16} /></button>
-    </aside>
-  </div>;
+export function PremiumCartButton() {
+  const { items, setCartOpen } = useCart();
+  return <button type="button" className="premium-cart-button" onClick={() => setCartOpen(true)} aria-label={`Open cart with ${items.length} plan${items.length === 1 ? "" : "s"}`}><ShoppingCart size={18} /><span className="premium-cart-label">Cart</span><b>{items.length}</b></button>;
 }
 
-export function FreePlanForm({ compact = false, source = "free_plan", onSuccess }: { compact?: boolean; source?: string; onSuccess?: () => void }) {
+export function CartDrawer() {
+  const { items, remove, clear, cartOpen, setCartOpen } = useCart();
+  const close = () => setCartOpen(false);
+  const buy = () => { if (!items.length) return; window.dispatchEvent(new CustomEvent<string[]>("bwc-open-email-popup", { detail: items.map((item) => item.title) })); clear(); close(); };
+  if (!cartOpen) return null;
+  return <div className="tray-scrim" role="dialog" aria-modal="true" aria-label="Your cart" onMouseDown={close}><aside className="plan-tray premium-cart-tray" onMouseDown={(event) => event.stopPropagation()}><button className="tray-close" type="button" onClick={close} aria-label="Close cart"><X size={20} /></button><p className="eyebrow">YOUR PDF CART</p><h2>Plans worth keeping.</h2>{items.length ? <><div className="cart-lines">{items.map((item) => <div className="cart-line" key={item.title}><div><strong>{item.title}</strong><small>{item.note}</small></div><div><b>{item.price}</b><button type="button" onClick={() => remove(item.title)} aria-label={`Remove ${item.title}`}><X size={16} /></button></div></div>)}</div><p className="soft-copy">Select Buy, add your email, and we’ll queue the PDFs for delivery.</p><button className="black-button full" type="button" onClick={buy}>Buy & send my PDFs <ArrowRight size={16} /></button></> : <div className="cart-empty"><ShoppingCart size={26} /><strong>Your cart is ready.</strong><p>Add a plan and it will show up here.</p></div>}</aside></div>;
+}
+
+export function FreePlanForm({ compact = false, source = "free_plan", onSuccess, planNames = [] }: { compact?: boolean; source?: string; onSuccess?: () => void; planNames?: string[] }) {
   const mutation = trpc.captures.freePlan.useMutation();
+  const cartMutation = trpc.captures.cartRequest.useMutation();
   const { notice, setNotice } = useFormToast();
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
@@ -113,14 +114,15 @@ export function FreePlanForm({ compact = false, source = "free_plan", onSuccess 
     setErrors(nextErrors);
     if (Object.values(nextErrors).some(Boolean)) return;
     try {
-      await mutation.mutateAsync({ name: name.trim(), email: email.trim() });
-      setNotice({ tone: "success", text: `You’re in, ${name.trim().split(" ")[0]}. Check your inbox for the next step.` });
+      if (planNames.length) await cartMutation.mutateAsync({ name: name.trim(), email: email.trim(), planNames });
+      else await mutation.mutateAsync({ name: name.trim(), email: email.trim() });
+      setNotice({ tone: "success", text: planNames.length ? `Request received, ${name.trim().split(" ")[0]}. We’ll send your selected PDFs to this inbox.` : `You’re in, ${name.trim().split(" ")[0]}. Check your inbox for the next step.` });
       setName(""); setEmail(""); onSuccess?.();
     } catch (error) { setNotice({ tone: "error", text: error instanceof Error ? error.message : "Could not save your request. Please try again." }); }
   };
   return <form className={`capture-form ${compact ? "compact" : ""}`} onSubmit={submit} noValidate data-source={source}>
     <div className="form-fields"><Field label="Name"><input value={name} onChange={(event) => setName(event.target.value)} placeholder="Your name" aria-invalid={Boolean(errors.name)} />{errors.name ? <small className="field-error">{errors.name}</small> : null}</Field><Field label="Email"><input value={email} onChange={(event) => setEmail(event.target.value)} placeholder="you@email.com" type="email" aria-invalid={Boolean(errors.email)} />{errors.email ? <small className="field-error">{errors.email}</small> : null}</Field></div>
-    <button className="black-button form-button" type="submit" disabled={mutation.isPending}>{mutation.isPending ? "Sending…" : "Send me the plan"}<ArrowRight size={16} /></button>
+    <button className="black-button form-button" type="submit" disabled={mutation.isPending || cartMutation.isPending}>{mutation.isPending || cartMutation.isPending ? "Sending…" : planNames.length ? "Request my PDFs" : "Send me the plan"}<ArrowRight size={16} /></button>
     <Notice notice={notice} /><p className="form-privacy">No spam. Unsubscribe anytime.</p>
   </form>;
 }
@@ -153,6 +155,7 @@ export function ContactForm() {
 export function EmailPopup() {
   const [open, setOpen] = useState(false);
   const [submitted, setSubmitted] = useState(false);
+  const [requestedPlans, setRequestedPlans] = useState<string[]>([]);
   const hasShown = useRef(false);
   const successMessage = useRef<HTMLDivElement>(null);
   useEffect(() => {
@@ -168,17 +171,19 @@ export function EmailPopup() {
     window.addEventListener("scroll", handleScroll, { passive: true });
     return () => { window.clearTimeout(timer); window.removeEventListener("scroll", handleScroll); };
   }, []);
+  useEffect(() => { const openCartRequest = (event: Event) => { setRequestedPlans((event as CustomEvent<string[]>).detail ?? []); setSubmitted(false); setOpen(true); }; window.addEventListener("bwc-open-email-popup", openCartRequest); return () => window.removeEventListener("bwc-open-email-popup", openCartRequest); }, []);
   useEffect(() => { if (submitted) successMessage.current?.focus(); }, [submitted]);
-  const close = () => { sessionStorage.setItem("bwc-plan-popup-dismissed", "true"); setOpen(false); };
+  const close = () => { sessionStorage.setItem("bwc-plan-popup-dismissed", "true"); setOpen(false); setRequestedPlans([]); };
   if (!open) return null;
-  return <div className="popup-scrim" role="dialog" aria-modal="true" aria-label={submitted ? "Thank you for subscribing" : "Free 7-Day Fat Loss Starter"}><div className={`popup-card ${submitted ? "success-state" : ""}`}><button className="popup-close" type="button" onClick={close} aria-label="Close popup"><X size={20} /></button>{submitted ? <div className="popup-success" ref={successMessage} tabIndex={-1} role="status"><span className="popup-success-mark"><CheckCircle2 size={38} /></span><p className="eyebrow">YOU’RE IN</p><h2>Thank you.</h2><p>Your free starter is on its way. Watch your inbox for the first useful step, then check back for the weekly challenges that keep you building.</p><button className="black-button" type="button" onClick={close}>Back to the work <ArrowRight size={16} /></button></div> : <><div className="popup-stamp">7</div><p className="eyebrow">FREE STARTER</p><h2>Stop guessing.<br />Start following a plan.</h2><p>Get the free 7-Day Fat Loss Starter for men who want real results — no extreme diets, no BS.</p><p className="popup-weekly">Subscribe for weekly challenges, practical coaching, and a clear reason to keep building week by week.</p><ul><li><Check size={15} />7 days of simple workouts</li><li><Check size={15} />Clear calorie and protein targets</li><li><Check size={15} />A weekly challenge to keep you building</li></ul><FreePlanForm compact source="popup" onSuccess={() => setSubmitted(true)} /><button className="text-button" type="button" onClick={close}>No thanks, I’ll keep guessing.</button></>}</div></div>;
+  const cartRequest = requestedPlans.length > 0;
+  return <div className="popup-scrim" role="dialog" aria-modal="true" aria-label={submitted ? "Thank you for subscribing" : cartRequest ? "Request your PDF plans" : "Free 7-Day Fat Loss Starter"}><div className={`popup-card ${submitted ? "success-state" : ""}`}><button className="popup-close" type="button" onClick={close} aria-label="Close popup"><X size={20} /></button>{submitted ? <div className="popup-success" ref={successMessage} tabIndex={-1} role="status"><span className="popup-success-mark"><CheckCircle2 size={38} /></span><p className="eyebrow">REQUEST RECEIVED</p><h2>Thank you.</h2><p>{cartRequest ? "Your selected PDF plans are queued. We’ll send them to your inbox soon." : "Your free starter is on its way. Watch your inbox for the first useful step, then check back for the weekly challenges that keep you building."}</p><button className="black-button" type="button" onClick={close}>Back to the work <ArrowRight size={16} /></button></div> : <><div className="popup-stamp">{cartRequest ? requestedPlans.length : "7"}</div><p className="eyebrow">{cartRequest ? "PDF REQUEST" : "FREE STARTER"}</p><h2>{cartRequest ? "Good choice.\nWe’ll send the PDFs." : <>Stop guessing.<br />Start following a plan.</>}</h2><p>{cartRequest ? "Add your name and email. Your selected plans will be queued for direct delivery." : "Get the free 7-Day Fat Loss Starter for men who want real results — no extreme diets, no BS."}</p>{cartRequest ? <ul>{requestedPlans.map((plan) => <li key={plan}><Check size={15} />{plan}</li>)}</ul> : <><p className="popup-weekly">Subscribe for weekly challenges, practical coaching, and a clear reason to keep building week by week.</p><ul><li><Check size={15} />7 days of simple workouts</li><li><Check size={15} />Clear calorie and protein targets</li><li><Check size={15} />A weekly challenge to keep you building</li></ul></>}<FreePlanForm compact source={cartRequest ? "cart_purchase" : "popup"} planNames={requestedPlans} onSuccess={() => setSubmitted(true)} /><button className="text-button" type="button" onClick={close}>No thanks, I’ll keep guessing.</button></>}</div></div>;
 }
 
 export function Marquee({ text = "BUILD STRONGER HABITS" }: { text?: string }) { return <div className="marquee" aria-label={text}><div>{Array.from({ length: 8 }, (_, index) => <span key={index}>{text} <b>✦</b></span>)}</div></div>; }
 
 export function SectionHeading({ eyebrow, title, copy, align = "left" }: { eyebrow?: string; title: string; copy?: string; align?: "left" | "center" }) { return <div className={`section-heading ${align}`}>{eyebrow ? <p className="eyebrow">{eyebrow}</p> : null}<h2>{title}</h2>{copy ? <p>{copy}</p> : null}</div>; }
 
-export function ArticleCard({ article, featured = false }: { article: PublicArticle; featured?: boolean }) { const waitingForImage = article.slug === "creatine-safety-basics" || article.slug === "when-to-take-whey-protein"; return <Link href={`/articles/${article.slug}`} className={`article-card ${featured ? "featured" : ""}`}><div className={`article-visual ${articleVisuals[article.slug] ?? "visual-swoop"}`}>{waitingForImage ? <><span>IMAGE PLACEHOLDER</span><div className="article-image-placeholder"><Dumbbell aria-hidden="true" size={featured ? 46 : 32} /><small>YOUR IMAGE GOES HERE</small></div></> : <><span>{article.category}</span><Dumbbell aria-hidden="true" size={featured ? 58 : 38} /></>}</div><div className="article-card-copy"><p>{article.category}</p><h3>{article.title}</h3><span>{article.excerpt}</span><strong>Read guide <ArrowDownRight size={16} /></strong></div></Link>; }
+export function ArticleCard({ article, featured = false }: { article: PublicArticle; featured?: boolean }) { const image = articleImages[article.slug]; return <Link href={`/articles/${article.slug}`} className={`article-card ${featured ? "featured" : ""}`}><div className={`article-visual ${articleVisuals[article.slug] ?? "visual-swoop"}`}>{image ? <img className="article-guide-image" src={image.src} alt={image.alt} /> : <><span>{article.category}</span><Dumbbell aria-hidden="true" size={featured ? 58 : 38} /></>}</div><div className="article-card-copy"><p>{article.category}</p><h3>{article.title}</h3><span>{article.excerpt}</span><strong>Read guide <ArrowDownRight size={16} /></strong></div></Link>; }
 
 export function ProgramCarousel({ onFreePlan }: { onFreePlan: () => void }) {
   const programs = [
@@ -187,8 +192,9 @@ export function ProgramCarousel({ onFreePlan }: { onFreePlan: () => void }) {
     { tag: "COMING SOON", title: "12-Week Muscle Builder", price: "Waitlist", copy: "Clear progression for beginners who want to actually grow.", accent: "muscle" },
   ];
   const strip = useRef<HTMLDivElement>(null);
+  const { add } = useCart();
   const move = (direction: -1 | 1) => strip.current?.scrollBy({ left: direction * strip.current.clientWidth * .82, behavior: "smooth" });
-  return <div className="program-carousel"><div className="program-strip" ref={strip} role="region" aria-label="Scroll through program PDFs" tabIndex={0}>{programs.map((program, index) => <article className={`program-pdf ${program.accent}`} key={program.title}><div className="program-pdf-cover"><span className="program-pdf-count">0{index + 1}<small>/ {programs.length}</small></span><span className="program-pdf-stamp">BUILD<br />WITH<br />COACH</span><span className="program-ring" /><Dumbbell size={72} /><span className="program-dots" /><strong>{program.title}</strong><small>SCROLL TO EXPLORE</small></div><div className="program-pdf-copy"><p className="eyebrow">{program.tag}</p><h3>{program.title}</h3><p>{program.copy}</p><strong>{program.price}</strong><button className="black-button" type="button" onClick={onFreePlan}>{index === 0 ? "Get the free plan" : "Join waitlist"}<ArrowRight size={16} /></button></div></article>)}</div><div className="carousel-controls"><button type="button" onClick={() => move(-1)} aria-label="Previous program"><ArrowLeft size={18} /></button><span>SCROLL THE PDF. DO THE WORK.</span><button type="button" onClick={() => move(1)} aria-label="Next program"><ArrowRight size={18} /></button></div></div>;
+  return <div className="program-carousel"><div className="program-strip" ref={strip} role="region" aria-label="Scroll through program PDFs" tabIndex={0}>{programs.map((program, index) => <article className={`program-pdf ${program.accent}`} key={program.title}><div className="program-pdf-cover"><span className="program-pdf-count">0{index + 1}<small>/ {programs.length}</small></span><span className="program-pdf-stamp">BUILD<br />WITH<br />COACH</span><span className="program-ring" /><Dumbbell size={72} /><span className="program-dots" /><strong>{program.title}</strong><small>SCROLL TO EXPLORE</small></div><div className="program-pdf-copy"><p className="eyebrow">{program.tag}</p><h3>{program.title}</h3><p>{program.copy}</p><strong>{program.price}</strong><button className="black-button" type="button" onClick={() => add({ title: program.title, price: program.price, note: index === 0 ? "Free PDF · home or gym" : "PDF plan · delivery request" })}>Add to cart <ShoppingCart size={16} /></button></div></article>)}</div><div className="carousel-controls"><button type="button" onClick={() => move(-1)} aria-label="Previous program"><ArrowLeft size={18} /></button><span>SCROLL THE PDF. DO THE WORK.</span><button type="button" onClick={() => move(1)} aria-label="Next program"><ArrowRight size={18} /></button></div></div>;
 }
 
 export function FaqAccordion() {

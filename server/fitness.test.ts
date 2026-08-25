@@ -43,6 +43,11 @@ describe("public capture validation", () => {
     await expect(caller.captures.freePlan({ name: "A", email: "not-an-email" })).rejects.toMatchObject({ code: "BAD_REQUEST" });
   });
 
+  it("rejects cart PDF requests without a valid email and selected plan", async () => {
+    const caller = appRouter.createCaller(ctx);
+    await expect(caller.captures.cartRequest({ name: "A", email: "not-an-email", planNames: [] })).rejects.toMatchObject({ code: "BAD_REQUEST" });
+  });
+
   it("rejects malformed waitlist and contact requests before persistence", async () => {
     const caller = appRouter.createCaller(ctx);
     await expect(caller.captures.waitlist({ email: "wrong" })).rejects.toMatchObject({ code: "BAD_REQUEST" });

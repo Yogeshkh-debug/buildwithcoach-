@@ -5,6 +5,7 @@ import { systemRouter } from "./_core/systemRouter";
 import { publicProcedure, router } from "./_core/trpc";
 import {
   addContactMessage,
+  addCartRequest,
   addFreePlanSignup,
   addNewsletterSubscriber,
   addStorySubmission,
@@ -37,6 +38,7 @@ export const appRouter = router({
   captures: router({
     newsletter: publicProcedure.input(z.object({ name: z.string().trim().max(160).optional(), email: emailSchema, source: z.string().max(80) })).mutation(({ input }) => addNewsletterSubscriber(input)),
     freePlan: publicProcedure.input(z.object({ name: nameSchema, email: emailSchema })).mutation(({ input }) => addFreePlanSignup(input)),
+    cartRequest: publicProcedure.input(z.object({ name: nameSchema, email: emailSchema, planNames: z.array(z.string().trim().min(2).max(160)).min(1).max(8) })).mutation(({ input }) => addCartRequest(input)),
     waitlist: publicProcedure.input(z.object({ name: z.string().trim().max(160).optional(), email: emailSchema })).mutation(({ input }) => addWaitlistRequest(input)),
     contact: publicProcedure.input(z.object({ name: nameSchema, email: emailSchema, message: z.string().trim().min(10, "Write at least 10 characters.").max(3000) })).mutation(({ input }) => addContactMessage(input)),
     story: publicProcedure.input(z.object({

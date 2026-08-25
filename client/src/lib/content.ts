@@ -38,3 +38,8 @@ export const articleVisuals: Record<string, string> = {
   "creatine-safety-basics": "visual-creatine-placeholder",
   "when-to-take-whey-protein": "visual-whey-placeholder",
 };
+
+export const articleImages: Record<string, { src: string; alt: string }> = {
+  "creatine-safety-basics": { src: "/manus-storage/creatine-feature_ccabd93e.jpg", alt: "Creatine supplement guide artwork" },
+  "when-to-take-whey-protein": { src: "/manus-storage/whey-feature_9cddc5e2.jpg", alt: "Whey protein timing guide artwork" },
+};

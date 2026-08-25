@@ -4,6 +4,8 @@ import NotFound from "@/pages/NotFound";
 import { Route, Switch } from "wouter";
 import ErrorBoundary from "./components/ErrorBoundary";
 import { ThemeProvider } from "./contexts/ThemeContext";
+import { CartProvider } from "./contexts/CartContext";
+import { CartDrawer, EmailPopup } from "./components/SiteComponents";
 import Home from "./pages/Home";
 import { AboutPage, ArticleDetailPage, ArticlesPage, ContactPage, DashboardPage, FreePlanPage, LoginPage, ProgramsPage, ToolsPage } from "./pages/ContentPages";
 
@@ -51,7 +53,11 @@ function App() {
       >
         <TooltipProvider>
           <Toaster />
-          <Router />
+          <CartProvider>
+            <Router />
+            <CartDrawer />
+            <EmailPopup />
+          </CartProvider>
         </TooltipProvider>
       </ThemeProvider>
     </ErrorBoundary>
