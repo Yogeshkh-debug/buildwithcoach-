@@ -131,6 +131,23 @@ h1, h2, h3, p { margin: 0; }
 .story-standards { display:flex; flex-wrap:wrap; gap:11px 16px; margin:0 0 26px; font-size:10px; font-weight:800; }
 .story-standards span { display:inline-flex; align-items:center; gap:5px; }
 .story-standards svg { color:var(--mist-dark); }
+.community-story { min-height:590px; }
+.community-story h3 { margin-top:22px; }
+.community-story > p:not(.eyebrow) { margin-bottom:18px; }
+.story-form { margin-top:auto; display:grid; gap:12px; }
+.story-form .form-fields.two { display:grid; grid-template-columns:1fr 1fr; gap:9px; }
+.story-form .field { gap:5px; font-size:9px; }
+.story-form .field input, .story-form .field textarea { min-height:36px; padding:8px 9px; border-color:var(--ink); background:rgba(255,255,255,.72); color:var(--ink); font-size:11px; }
+.story-form .field textarea { min-height:94px; }
+.story-photo-field { display:grid; gap:5px; }
+.file-picker { min-height:36px; padding:0 10px; display:inline-flex; align-items:center; justify-content:center; gap:7px; border:1px solid var(--ink); background:var(--ink); color:white; font:9px var(--mono); text-transform:uppercase; letter-spacing:.04em; cursor:pointer; }
+.file-picker:hover { background:white; color:var(--ink); }
+.file-picker input { position:absolute; width:1px; height:1px; overflow:hidden; clip:rect(0,0,0,0); white-space:nowrap; }
+.photo-status { font:10px/1.35 var(--body); text-transform:none; letter-spacing:0; }
+.consent-field { display:flex; align-items:flex-start; gap:8px; font-size:10px; line-height:1.45; text-transform:none; letter-spacing:0; }
+.consent-field input { width:15px; height:15px; margin:1px 0 0; accent-color:var(--ink); flex:none; }
+.story-form .black-button { min-height:39px; padding:0 12px; align-self:start; box-shadow:3px 3px 0 var(--mist-dark); }
+@media (max-width:720px) { .community-story { min-height:0; grid-column:1/-1; } .community-story h3 { font-size:28px; } .story-form .form-fields.two { grid-template-columns:1fr; } .story-form .field textarea { min-height:104px; } }
 .footer-signature { padding:28px 24px 16px; overflow:hidden; border-top:1px solid #4c5555; color:white; font:clamp(42px,9.5vw,151px)/.78 var(--display); letter-spacing:-.095em; text-align:center; text-transform:uppercase; white-space:nowrap; }
 .footer-signature strong { color:var(--mist-dark); }
 .footer-signature span { display:inline-block; margin-left:.03em; font-family:var(--body); font-size:.58em; letter-spacing:0; transform:translateY(-.08em) rotate(-8deg); }

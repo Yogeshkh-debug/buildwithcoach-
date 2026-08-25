@@ -48,4 +48,9 @@ describe("public capture validation", () => {
     await expect(caller.captures.waitlist({ email: "wrong" })).rejects.toMatchObject({ code: "BAD_REQUEST" });
     await expect(caller.captures.contact({ name: "A", email: "wrong", message: "Short" })).rejects.toMatchObject({ code: "BAD_REQUEST" });
   });
+
+  it("requires a substantial story, safe photo type, and explicit publishing consent", async () => {
+    const caller = appRouter.createCaller(ctx);
+    await expect(caller.captures.story({ name: "Coach", email: "coach@example.com", story: "Too short", photoData: "not-a-photo", photoName: "story.gif", photoMime: "image/png", consent: false })).rejects.toMatchObject({ code: "BAD_REQUEST" });
+  });
 });

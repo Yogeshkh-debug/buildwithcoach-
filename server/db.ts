@@ -8,10 +8,12 @@ import {
   freePlanSignups,
   futureProducts,
   InsertUser,
+  storySubmissions,
   users,
 } from "../drizzle/schema";
 import { articleSeeds, serializeArticleBody } from "./articleSeed";
 import { ENV } from "./_core/env";
+import { storagePut } from "./storage";
 
 let _db: ReturnType<typeof drizzle> | null = null;
 
@@ -136,5 +138,30 @@ export async function addContactMessage(input: { name: string; email: string; me
   const db = await getDb();
   if (!db) return { success: true, persisted: false };
   await db.insert(contactMessages).values(input);
+  return { success: true, persisted: true };
+}
+
+export async function addStorySubmission(input: { name: string; email: string; story: string; photoData: string; photoName: string; photoMime: "image/jpeg" | "image/png" | "image/webp"; consent: true }) {
+  const db = await getDb();
+  if (!db) return { success: true, persisted: false };
+
+  const dataMatch = input.photoData.match(/^data:(image\/(?:jpeg|png|webp));base64,([A-Za-z0-9+/=]+)$/);
+  if (!dataMatch || dataMatch[1] !== input.photoMime) throw new Error("Upload a valid JPG, PNG, or WebP photo.");
+  const bytes = Buffer.from(dataMatch[2], "base64");
+  if (bytes.length === 0 || bytes.length > 2 * 1024 * 1024) throw new Error("Keep the photo under 2 MB.");
+
+  const extension = input.photoMime === "image/jpeg" ? "jpg" : input.photoMime.split("/")[1];
+  const uploaded = await storagePut(`community-stories/${crypto.randomUUID()}.${extension}`, bytes, input.photoMime);
+  await db.insert(storySubmissions).values({
+    name: input.name,
+    email: input.email,
+    story: input.story,
+    photoKey: uploaded.key,
+    photoUrl: uploaded.url,
+    photoName: input.photoName,
+    photoMime: input.photoMime,
+    consent: 1,
+    status: "pending_review",
+  });
   return { success: true, persisted: true };
 }

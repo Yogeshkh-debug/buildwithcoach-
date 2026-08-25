@@ -7,6 +7,7 @@ import {
   addContactMessage,
   addFreePlanSignup,
   addNewsletterSubscriber,
+  addStorySubmission,
   addWaitlistRequest,
   getPublishedArticle,
   listFutureProducts,
@@ -38,6 +39,15 @@ export const appRouter = router({
     freePlan: publicProcedure.input(z.object({ name: nameSchema, email: emailSchema })).mutation(({ input }) => addFreePlanSignup(input)),
     waitlist: publicProcedure.input(z.object({ name: z.string().trim().max(160).optional(), email: emailSchema })).mutation(({ input }) => addWaitlistRequest(input)),
     contact: publicProcedure.input(z.object({ name: nameSchema, email: emailSchema, message: z.string().trim().min(10, "Write at least 10 characters.").max(3000) })).mutation(({ input }) => addContactMessage(input)),
+    story: publicProcedure.input(z.object({
+      name: nameSchema,
+      email: emailSchema,
+      story: z.string().trim().min(50, "Share at least 50 characters so we understand your story.").max(3000),
+      photoData: z.string().max(3_000_000),
+      photoName: z.string().trim().min(1).max(260),
+      photoMime: z.enum(["image/jpeg", "image/png", "image/webp"]),
+      consent: z.literal(true, { error: "You need to confirm publication consent before submitting." }),
+    })).mutation(({ input }) => addStorySubmission(input)),
   }),
 });
 

@@ -37,3 +37,11 @@
 - [x] Update the community story invitation to say “Share your story — we’ll stick it” while retaining the permission-first policy.
 - [x] Ensure every guide route scrolls to its header when opened so readers begin at the top.
 - [x] Verified the new warm-up guide opens with no prior scroll position, and the guide library exposes both new strict-coach guides.
+
+- [x] Add a community story form with a text area, photo upload, and required publication-consent checkbox.
+- [x] Persist submitted stories and photo metadata securely for review without publishing them automatically.
+- [x] Validate the community form and verify its mobile and desktop presentation.
+- [x] Verified the mobile community form layout and passed 9 unit tests plus the production build.
+
+- [x] Verify the community story form at desktop width and correct any spacing or overflow issues.
+- [x] Confirmed on the desktop homepage that the name, email, story, photo chooser, consent checkbox, and submit control are all present and reachable without overflow.

@@ -67,5 +67,19 @@ export const contactMessages = mysqlTable("contact_messages", {
   createdAt: timestamp("createdAt").defaultNow().notNull(),
 });
 
+export const storySubmissions = mysqlTable("story_submissions", {
+  id: int("id").autoincrement().primaryKey(),
+  name: varchar("name", { length: 160 }).notNull(),
+  email: varchar("email", { length: 320 }).notNull(),
+  story: text("story").notNull(),
+  photoKey: varchar("photoKey", { length: 500 }).notNull(),
+  photoUrl: varchar("photoUrl", { length: 600 }).notNull(),
+  photoName: varchar("photoName", { length: 260 }).notNull(),
+  photoMime: varchar("photoMime", { length: 80 }).notNull(),
+  consent: int("consent").default(0).notNull(),
+  status: varchar("status", { length: 40 }).default("pending_review").notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+
 export type User = typeof users.$inferSelect;
 export type InsertUser = typeof users.$inferInsert;
