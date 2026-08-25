@@ -84,3 +84,22 @@
 
 - [x] Verify the premium cart, cart-to-email popup, and supplement-guide images at a phone viewport without clipping or overflow.
 - [x] Confirmed the phone layout retains the premium cart header, readable PDF Add to cart controls, and unclipped supplement-card media treatment.
+
+- [x] Consolidate the community experience to one story-submission destination and replace the redundant Results-section form prompt with a useful companion action.
+- [x] Remove the current two supplement card/header images until the user provides final image assets.
+- [x] Add a premium Add to cart confirmation and a dedicated Cart route so users can review selected plans without scrolling to the header.
+- [x] Replace the existing three PDF plans with Home Zero, Gym Build, Fuel Plan, and Zero to Growth using the requested subtitles.
+- [x] Refine the creatine and whey guides with the user-supplied in-article reference material and use their internal supporting visuals only inside the guides.
+- [x] Verify the updated cart flow, program catalog, story destination, and guide layouts on desktop and mobile.
+- [x] Persist cart selections for the current browser session so the dedicated Cart route remains reliable after navigation or refresh.
+- [x] Final verification passed: session-persistent cart route, premium add confirmation, PDF request popup, in-article visuals, TypeScript check, 10 unit tests, and production build.
+
+- [x] Verify the refined cart route, add confirmation, PDF-request popup, and in-article supplement visuals through phone-width browser interactions.
+- [x] Confirmed the phone-width program strip, responsive Add to cart control, direct Cart route, selected-plan popup flow, and in-article visual treatment without header imagery or video embeds.
+
+- [x] Run a non-persistent phone-preview QA of the selected-cart route, delivery popup, and internal supplement visuals without creating customer data.
+- [x] Avoid reapplying article seed updates on every public article request so guide pages remain responsive.
+- [x] Phone preview confirmed a readable selected Home Zero cart, a selected-plan request popup, and inline-only creatine and whey visuals without header media, video embeds, clipping, or horizontal overflow.
+- [x] Captured a genuine 375px browser-emulation cart route with Home Zero, its request action, and no horizontal overflow.
+- [x] Captured a genuine 375px browser-emulation PDF-request popup with Home Zero listed and readable name, email, and Request my PDFs controls.
+- [x] Final verification passed after the article-request cache adjustment: TypeScript check, 10 Vitest tests, and production build.

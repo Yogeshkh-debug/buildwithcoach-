@@ -2,6 +2,7 @@ export type ArticleSection = {
   title: string;
   paragraphs: string[];
   bullets?: string[];
+  visual?: { src: string; alt: string };
 };
 
 export type ArticleContent = {
@@ -39,7 +40,11 @@ export const articleVisuals: Record<string, string> = {
   "when-to-take-whey-protein": "visual-whey-placeholder",
 };
 
-export const articleImages: Record<string, { src: string; alt: string }> = {
-  "creatine-safety-basics": { src: "/manus-storage/creatine-feature_ccabd93e.jpg", alt: "Creatine supplement guide artwork" },
-  "when-to-take-whey-protein": { src: "/manus-storage/whey-feature_9cddc5e2.jpg", alt: "Whey protein timing guide artwork" },
-};
+export type ProgramPlan = { tag: string; title: string; subtitle: string; price: string; accent: string; note: string };
+
+export const programCatalog: ProgramPlan[] = [
+  { tag: "NO EQUIPMENT", title: "Home Zero", subtitle: "No equipment. No excuse to stay stuck.", price: "Free", accent: "starter", note: "No-equipment PDF · direct delivery" },
+  { tag: "WITH EQUIPMENT", title: "Gym Build", subtitle: "With equipment. Built for steady strength.", price: "Free", accent: "home", note: "Gym PDF · direct delivery" },
+  { tag: "SIMPLE DIET", title: "Fuel Plan", subtitle: "Simple diet. Meals that do their job.", price: "Free", accent: "fuel", note: "Nutrition PDF · direct delivery" },
+  { tag: "FULL TRANSFORMATION", title: "Zero to Growth", subtitle: "Full transformation. One repeatable system.", price: "Free", accent: "muscle", note: "Transformation PDF · direct delivery" },
+];

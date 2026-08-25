@@ -16,6 +16,7 @@ import { ENV } from "./_core/env";
 import { storagePut } from "./storage";
 
 let _db: ReturnType<typeof drizzle> | null = null;
+let articleSeedPromise: Promise<void> | null = null;
 
 export async function getDb() {
   if (!_db && process.env.DATABASE_URL) {
@@ -64,17 +65,20 @@ async function seedArticlesIfNeeded(db: NonNullable<Awaited<ReturnType<typeof ge
   const existing = await db.select({ slug: articles.slug }).from(articles);
   const existingSlugs = new Set(existing.map((article) => article.slug));
   const missingSeeds = articleSeeds.filter((article) => !existingSlugs.has(article.slug));
-  if (missingSeeds.length === 0) return;
-  await db.insert(articles).values(
-    missingSeeds.map((article) => ({
-      slug: article.slug,
-      title: article.title,
-      excerpt: article.excerpt,
-      body: serializeArticleBody(article),
-      category: article.category,
-      published: 1,
-    })),
-  );
+  if (missingSeeds.length) await db.insert(articles).values(missingSeeds.map((article) => ({ slug: article.slug, title: article.title, excerpt: article.excerpt, body: serializeArticleBody(article), category: article.category, published: 1 })));
+  for (const article of articleSeeds.filter((entry) => existingSlugs.has(entry.slug))) {
+    await db.update(articles).set({ title: article.title, excerpt: article.excerpt, body: serializeArticleBody(article), category: article.category, published: 1 }).where(eq(articles.slug, article.slug));
+  }
+}
+
+async function ensureArticlesSeeded(db: NonNullable<Awaited<ReturnType<typeof getDb>>>) {
+  if (!articleSeedPromise) {
+    articleSeedPromise = seedArticlesIfNeeded(db).catch((error) => {
+      articleSeedPromise = null;
+      throw error;
+    });
+  }
+  await articleSeedPromise;
 }
 
 async function seedProductsIfNeeded(db: NonNullable<Awaited<ReturnType<typeof getDb>>>) {
@@ -89,7 +93,7 @@ async function seedProductsIfNeeded(db: NonNullable<Awaited<ReturnType<typeof ge
 export async function listPublishedArticles() {
   const db = await getDb();
   if (!db) return articleSeeds.map((article, index) => ({ id: index + 1, ...article, body: serializeArticleBody(article), published: 1 }));
-  await seedArticlesIfNeeded(db);
+  await ensureArticlesSeeded(db);
   return db.select().from(articles).where(eq(articles.published, 1)).orderBy(desc(articles.createdAt));
 }
 
@@ -99,7 +103,7 @@ export async function getPublishedArticle(slug: string) {
     const article = articleSeeds.find((entry) => entry.slug === slug);
     return article ? { id: articleSeeds.indexOf(article) + 1, ...article, body: serializeArticleBody(article), published: 1 } : undefined;
   }
-  await seedArticlesIfNeeded(db);
+  await ensureArticlesSeeded(db);
   const result = await db.select().from(articles).where(eq(articles.slug, slug)).limit(1);
   return result[0];
 }

@@ -5,9 +5,9 @@ import { Route, Switch } from "wouter";
 import ErrorBoundary from "./components/ErrorBoundary";
 import { ThemeProvider } from "./contexts/ThemeContext";
 import { CartProvider } from "./contexts/CartContext";
-import { CartDrawer, EmailPopup } from "./components/SiteComponents";
+import { CartAddedToast, EmailPopup } from "./components/SiteComponents";
 import Home from "./pages/Home";
-import { AboutPage, ArticleDetailPage, ArticlesPage, ContactPage, DashboardPage, FreePlanPage, LoginPage, ProgramsPage, ToolsPage } from "./pages/ContentPages";
+import { AboutPage, ArticleDetailPage, ArticlesPage, CartPage, ContactPage, DashboardPage, FreePlanPage, LoginPage, ProgramsPage, ToolsPage } from "./pages/ContentPages";
 
 function LoginRoute() {
   return <LoginPage />;
@@ -27,6 +27,7 @@ function Router() {
       <Route path={"/tools"} component={ToolsPage} />
       <Route path={"/free-plan"} component={FreePlanPage} />
       <Route path={"/programs"} component={ProgramsPage} />
+      <Route path={"/cart"} component={CartPage} />
       <Route path={"/about"} component={AboutPage} />
       <Route path={"/contact"} component={ContactPage} />
       <Route path={"/login"} component={LoginRoute} />
@@ -55,7 +56,7 @@ function App() {
           <Toaster />
           <CartProvider>
             <Router />
-            <CartDrawer />
+            <CartAddedToast />
             <EmailPopup />
           </CartProvider>
         </TooltipProvider>

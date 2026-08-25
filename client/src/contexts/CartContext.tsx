@@ -1,4 +1,4 @@
-import { createContext, ReactNode, useContext, useMemo, useState } from "react";
+import { createContext, ReactNode, useContext, useEffect, useMemo, useState } from "react";
 
 export type CartPlan = { title: string; price: string; note: string };
 
@@ -14,8 +14,15 @@ type CartContextValue = {
 const CartContext = createContext<CartContextValue | null>(null);
 
 export function CartProvider({ children }: { children: ReactNode }) {
-  const [items, setItems] = useState<CartPlan[]>([]);
+  const [items, setItems] = useState<CartPlan[]>(() => {
+    try {
+      const stored = window.sessionStorage.getItem("bwc-cart-items");
+      const parsed = stored ? JSON.parse(stored) : [];
+      return Array.isArray(parsed) ? parsed.filter((item): item is CartPlan => typeof item?.title === "string" && typeof item?.price === "string" && typeof item?.note === "string") : [];
+    } catch { return []; }
+  });
   const [cartOpen, setCartOpen] = useState(false);
+  useEffect(() => { window.sessionStorage.setItem("bwc-cart-items", JSON.stringify(items)); }, [items]);
   const value = useMemo<CartContextValue>(() => ({
     items,
     add: (item) => setItems((current) => current.some((entry) => entry.title === item.title) ? current : [...current, item]),

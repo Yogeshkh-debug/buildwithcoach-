@@ -1,6 +1,6 @@
 import { calculateCalorieTarget, calculateProteinTarget } from "@shared/fitness";
 import { trpc } from "@/lib/trpc";
-import { articleImages, articleVisuals, type PublicArticle } from "@/lib/content";
+import { articleVisuals, programCatalog, type PublicArticle } from "@/lib/content";
 import { useCart, type CartPlan } from "@/contexts/CartContext";
 import { ArrowDownRight, ArrowLeft, ArrowRight, Check, CheckCircle2, ChevronDown, CircleUserRound, Dumbbell, Menu, Search, ShoppingCart, Sparkles, X } from "lucide-react";
 import { FormEvent, ReactNode, useEffect, useMemo, useRef, useState } from "react";
@@ -89,16 +89,16 @@ export function SiteHeader() {
 }
 
 export function PremiumCartButton() {
-  const { items, setCartOpen } = useCart();
-  return <button type="button" className="premium-cart-button" onClick={() => setCartOpen(true)} aria-label={`Open cart with ${items.length} plan${items.length === 1 ? "" : "s"}`}><ShoppingCart size={18} /><span className="premium-cart-label">Cart</span><b>{items.length}</b></button>;
+  const { items } = useCart();
+  const [, setLocation] = useLocation();
+  return <button type="button" className="premium-cart-button" onClick={() => setLocation("/cart")} aria-label={`Open cart with ${items.length} plan${items.length === 1 ? "" : "s"}`}><ShoppingCart size={18} /><span className="premium-cart-label">Cart</span><b>{items.length}</b></button>;
 }
 
-export function CartDrawer() {
-  const { items, remove, clear, cartOpen, setCartOpen } = useCart();
-  const close = () => setCartOpen(false);
-  const buy = () => { if (!items.length) return; window.dispatchEvent(new CustomEvent<string[]>("bwc-open-email-popup", { detail: items.map((item) => item.title) })); clear(); close(); };
-  if (!cartOpen) return null;
-  return <div className="tray-scrim" role="dialog" aria-modal="true" aria-label="Your cart" onMouseDown={close}><aside className="plan-tray premium-cart-tray" onMouseDown={(event) => event.stopPropagation()}><button className="tray-close" type="button" onClick={close} aria-label="Close cart"><X size={20} /></button><p className="eyebrow">YOUR PDF CART</p><h2>Plans worth keeping.</h2>{items.length ? <><div className="cart-lines">{items.map((item) => <div className="cart-line" key={item.title}><div><strong>{item.title}</strong><small>{item.note}</small></div><div><b>{item.price}</b><button type="button" onClick={() => remove(item.title)} aria-label={`Remove ${item.title}`}><X size={16} /></button></div></div>)}</div><p className="soft-copy">Select Buy, add your email, and we’ll queue the PDFs for delivery.</p><button className="black-button full" type="button" onClick={buy}>Buy & send my PDFs <ArrowRight size={16} /></button></> : <div className="cart-empty"><ShoppingCart size={26} /><strong>Your cart is ready.</strong><p>Add a plan and it will show up here.</p></div>}</aside></div>;
+export function CartAddedToast() {
+  const [plan, setPlan] = useState("");
+  useEffect(() => { const onAdd = (event: Event) => { const title = (event as CustomEvent<string>).detail; setPlan(title); window.setTimeout(() => setPlan(""), 4200); }; window.addEventListener("bwc-cart-added", onAdd); return () => window.removeEventListener("bwc-cart-added", onAdd); }, []);
+  if (!plan) return null;
+  return <div className="cart-added-toast" role="status"><span><CheckCircle2 size={19} /></span><div><strong>Added to cart</strong><p>{plan}</p></div><Link href="/cart">Review cart <ArrowRight size={15} /></Link><button type="button" onClick={() => setPlan("")} aria-label="Dismiss cart confirmation"><X size={16} /></button></div>;
 }
 
 export function FreePlanForm({ compact = false, source = "free_plan", onSuccess, planNames = [] }: { compact?: boolean; source?: string; onSuccess?: () => void; planNames?: string[] }) {
@@ -183,18 +183,14 @@ export function Marquee({ text = "BUILD STRONGER HABITS" }: { text?: string }) {
 
 export function SectionHeading({ eyebrow, title, copy, align = "left" }: { eyebrow?: string; title: string; copy?: string; align?: "left" | "center" }) { return <div className={`section-heading ${align}`}>{eyebrow ? <p className="eyebrow">{eyebrow}</p> : null}<h2>{title}</h2>{copy ? <p>{copy}</p> : null}</div>; }
 
-export function ArticleCard({ article, featured = false }: { article: PublicArticle; featured?: boolean }) { const image = articleImages[article.slug]; return <Link href={`/articles/${article.slug}`} className={`article-card ${featured ? "featured" : ""}`}><div className={`article-visual ${articleVisuals[article.slug] ?? "visual-swoop"}`}>{image ? <img className="article-guide-image" src={image.src} alt={image.alt} /> : <><span>{article.category}</span><Dumbbell aria-hidden="true" size={featured ? 58 : 38} /></>}</div><div className="article-card-copy"><p>{article.category}</p><h3>{article.title}</h3><span>{article.excerpt}</span><strong>Read guide <ArrowDownRight size={16} /></strong></div></Link>; }
+export function ArticleCard({ article, featured = false }: { article: PublicArticle; featured?: boolean }) { return <Link href={`/articles/${article.slug}`} className={`article-card ${featured ? "featured" : ""}`}><div className={`article-visual ${articleVisuals[article.slug] ?? "visual-swoop"}`}><span>{article.category}</span><Dumbbell aria-hidden="true" size={featured ? 58 : 38} /></div><div className="article-card-copy"><p>{article.category}</p><h3>{article.title}</h3><span>{article.excerpt}</span><strong>Read guide <ArrowDownRight size={16} /></strong></div></Link>; }
 
-export function ProgramCarousel({ onFreePlan }: { onFreePlan: () => void }) {
-  const programs = [
-    { tag: "START HERE", title: "7-Day Fat Loss Starter", price: "Free", copy: "Simple training, calories, protein, and a starting point that makes sense.", accent: "starter" },
-    { tag: "COMING SOON", title: "8-Week Home Fat Loss", price: "Waitlist", copy: "A practical challenge for getting consistent at home or in the gym.", accent: "home" },
-    { tag: "COMING SOON", title: "12-Week Muscle Builder", price: "Waitlist", copy: "Clear progression for beginners who want to actually grow.", accent: "muscle" },
-  ];
+export function ProgramCarousel() {
   const strip = useRef<HTMLDivElement>(null);
   const { add } = useCart();
   const move = (direction: -1 | 1) => strip.current?.scrollBy({ left: direction * strip.current.clientWidth * .82, behavior: "smooth" });
-  return <div className="program-carousel"><div className="program-strip" ref={strip} role="region" aria-label="Scroll through program PDFs" tabIndex={0}>{programs.map((program, index) => <article className={`program-pdf ${program.accent}`} key={program.title}><div className="program-pdf-cover"><span className="program-pdf-count">0{index + 1}<small>/ {programs.length}</small></span><span className="program-pdf-stamp">BUILD<br />WITH<br />COACH</span><span className="program-ring" /><Dumbbell size={72} /><span className="program-dots" /><strong>{program.title}</strong><small>SCROLL TO EXPLORE</small></div><div className="program-pdf-copy"><p className="eyebrow">{program.tag}</p><h3>{program.title}</h3><p>{program.copy}</p><strong>{program.price}</strong><button className="black-button" type="button" onClick={() => add({ title: program.title, price: program.price, note: index === 0 ? "Free PDF · home or gym" : "PDF plan · delivery request" })}>Add to cart <ShoppingCart size={16} /></button></div></article>)}</div><div className="carousel-controls"><button type="button" onClick={() => move(-1)} aria-label="Previous program"><ArrowLeft size={18} /></button><span>SCROLL THE PDF. DO THE WORK.</span><button type="button" onClick={() => move(1)} aria-label="Next program"><ArrowRight size={18} /></button></div></div>;
+  const addToCart = (program: (typeof programCatalog)[number]) => { add({ title: program.title, price: program.price, note: program.note }); window.dispatchEvent(new CustomEvent<string>("bwc-cart-added", { detail: program.title })); };
+  return <div className="program-carousel"><div className="program-strip" ref={strip} role="region" aria-label="Scroll through program PDFs" tabIndex={0}>{programCatalog.map((program, index) => <article className={`program-pdf ${program.accent}`} key={program.title}><div className="program-pdf-cover"><span className="program-pdf-count">0{index + 1}<small>/ {programCatalog.length}</small></span><span className="program-pdf-stamp">BUILD<br />WITH<br />COACH</span><span className="program-ring" /><Dumbbell size={72} /><span className="program-dots" /><strong>{program.title}</strong><small>SCROLL TO EXPLORE</small></div><div className="program-pdf-copy"><p className="eyebrow">{program.tag}</p><h3>{program.title}</h3><p>{program.subtitle}</p><strong>{program.price}</strong><button className="black-button" type="button" onClick={() => addToCart(program)}>Add to cart <ShoppingCart size={16} /></button></div></article>)}</div><div className="carousel-controls"><button type="button" onClick={() => move(-1)} aria-label="Previous program"><ArrowLeft size={18} /></button><span>SCROLL THE PDF. DO THE WORK.</span><button type="button" onClick={() => move(1)} aria-label="Next program"><ArrowRight size={18} /></button></div></div>;
 }
 
 export function FaqAccordion() {
