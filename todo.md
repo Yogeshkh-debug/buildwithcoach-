@@ -139,3 +139,9 @@
 - [x] Verify the article library and detail pages at desktop and phone widths, then run type, test, and production-build checks.
 - [x] Phone and desktop checks confirmed the unaltered whey and creatine source art appears only in the 16:9 guide-cover canvas; article bodies contain no inline visual figures.
 - [x] Final verification passed: TypeScript check, 13 Vitest tests, and production build. The build retains only the existing non-blocking large-chunk warning.
+
+- [x] Remove the unassigned 16:9 image from the review mapping and keep it out of the website.
+- [x] Apply the nine user-approved 16:9 images as the exact uncropped covers for their mapped guides.
+- [x] Verify every approved cover appears complete at desktop and phone widths, then run type, test, and production-build checks.
+- [x] Desktop and phone screenshots confirmed all nine approved images retain their original 16:9 composition with no cropping, stretching, or horizontal overflow.
+- [x] Final verification passed: TypeScript check, 13 Vitest tests, and production build. The build retains only the existing non-blocking large-chunk warning.

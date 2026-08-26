@@ -57,25 +57,31 @@ describe("public article procedures", () => {
     expect([...creatineSections, ...wheySections].every((section) => !section.visual)).toBe(true);
   }, 10_000);
 
-  it("binds the five requested guide covers to their supplied managed assets", async () => {
+  it("binds all nine approved 16:9 guide covers to their managed source assets", async () => {
     const ctx = { user: null, req: {} as TrpcContext["req"], res: {} as TrpcContext["res"] } as TrpcContext;
     const caller = appRouter.createCaller(ctx);
     const covers = await Promise.all([
+      "bodybuilding-for-beginners",
+      "lose-fat-without-losing-your-mind",
       "home-vs-gym-workouts",
-      "fix-common-training-mistakes",
       "protein-for-men",
-      "creatine-safety-basics",
       "why-you-keep-quitting",
+      "warm-up-that-actually-helps",
+      "fix-common-training-mistakes",
+      "creatine-safety-basics",
       "when-to-take-whey-protein",
     ].map(async (slug) => ({ slug, body: JSON.parse((await caller.articles.bySlug({ slug }))!.body) as { cover?: { src?: string } } })));
 
     expect(covers.map(({ slug, body }) => ({ slug, src: body.cover?.src }))).toEqual([
-      { slug: "home-vs-gym-workouts", src: expect.stringContaining("home-vs-gym-supplied") },
-      { slug: "fix-common-training-mistakes", src: expect.stringContaining("training-form-fixes-supplied") },
-      { slug: "protein-for-men", src: expect.stringContaining("protein-for-men-supplied") },
-      { slug: "creatine-safety-basics", src: expect.stringContaining("creatine-cover-supplied") },
-      { slug: "why-you-keep-quitting", src: expect.stringContaining("why-quitting-supplied") },
-      { slug: "when-to-take-whey-protein", src: expect.stringContaining("whey-guide-supplied") },
+      { slug: "bodybuilding-for-beginners", src: expect.stringContaining("beginner-guide-cover-approved") },
+      { slug: "lose-fat-without-losing-your-mind", src: expect.stringContaining("fat-loss-cover-approved") },
+      { slug: "home-vs-gym-workouts", src: expect.stringContaining("home-gym-cover-approved") },
+      { slug: "protein-for-men", src: expect.stringContaining("protein-men-cover-approved") },
+      { slug: "why-you-keep-quitting", src: expect.stringContaining("why-quitting-cover-approved") },
+      { slug: "warm-up-that-actually-helps", src: expect.stringContaining("warmup-cover-approved") },
+      { slug: "fix-common-training-mistakes", src: expect.stringContaining("training-mistakes-cover-approved") },
+      { slug: "creatine-safety-basics", src: expect.stringContaining("creatine-guide-cover-approved") },
+      { slug: "when-to-take-whey-protein", src: expect.stringContaining("whey-guide-cover-approved") },
     ]);
   }, 10_000);
 });
