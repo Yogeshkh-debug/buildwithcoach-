@@ -173,3 +173,6 @@
 - [x] Verify mobile Training Programs navigation closes the menu, scrolls to the four homepage PDF cards, and preserves all other pages; then run type, test, and production-build checks.
 - [x] Genuine 375px phone emulation confirmed Training Programs stays on the homepage, closes the menu, lands at the start of the PDF section, exposes all four cards, and has no horizontal overflow.
 - [x] Final verification passed: TypeScript check, 16 Vitest tests, and production build. The build retains only the existing non-blocking large-chunk warning.
+
+- [x] Add a premium Common Mistakes board with pinned sticky-note cards and direct coach-style fixes, without changing existing homepage sections.
+- [x] Verify the pinned-note board is readable and balanced at desktop and phone widths, then run type, test, and production-build checks.
