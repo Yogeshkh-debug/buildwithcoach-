@@ -145,3 +145,11 @@
 - [x] Verify every approved cover appears complete at desktop and phone widths, then run type, test, and production-build checks.
 - [x] Desktop and phone screenshots confirmed all nine approved images retain their original 16:9 composition with no cropping, stretching, or horizontal overflow.
 - [x] Final verification passed: TypeScript check, 13 Vitest tests, and production build. The build retains only the existing non-blocking large-chunk warning.
+
+- [x] Remove visible placeholder-style padding from article-card and guide-header image frames while preserving exact 16:9 source composition.
+- [x] Verify all guide covers fill their 16:9 frames cleanly at desktop and phone widths without cropping, stretching, or edits; then run type, test, and production-build checks.
+- [x] Desktop and phone guide-library checks confirmed all approved covers render edge to edge in 16:9 frames, with no decorative placeholder marks or visible padding.
+- [x] Final verification passed: TypeScript check, 13 Vitest tests, and production build. The build retains only the existing non-blocking large-chunk warning.
+
+- [x] Recheck guide detail-page header covers at desktop and phone widths after the edge-to-edge fit correction.
+- [x] Confirmed the creatine and whey header covers decode at 2048×1152 and render as complete 16:9 frames without padding, cropping, stretching, or inline placeholder art.
