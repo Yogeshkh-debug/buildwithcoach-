@@ -7,7 +7,7 @@ import { ThemeProvider } from "./contexts/ThemeContext";
 import { CartProvider } from "./contexts/CartContext";
 import { CartAddedToast, EmailPopup } from "./components/SiteComponents";
 import Home from "./pages/Home";
-import { AboutPage, ArticleDetailPage, ArticlesPage, CartPage, ContactPage, DashboardPage, FreePlanPage, LoginPage, ProgramsPage, ToolsPage } from "./pages/ContentPages";
+import { AboutPage, ArticleDetailPage, ArticlesPage, CartPage, ContactPage, DashboardPage, FreePlanPage, LoginPage, ToolsPage } from "./pages/ContentPages";
 
 function LoginRoute() {
   return <LoginPage />;
@@ -26,7 +26,6 @@ function Router() {
       <Route path={"/articles/:slug"} component={ArticleDetailPage} />
       <Route path={"/tools"} component={ToolsPage} />
       <Route path={"/free-plan"} component={FreePlanPage} />
-      <Route path={"/programs"} component={ProgramsPage} />
       <Route path={"/cart"} component={CartPage} />
       <Route path={"/about"} component={AboutPage} />
       <Route path={"/contact"} component={ContactPage} />

@@ -168,3 +168,8 @@
 - [x] Sampled the supplied hero edge color and used it for the unified frame; the original 2112×1104 artwork now preserves its native aspect ratio without a separate placeholder layer.
 - [x] Desktop and 375px phone checks confirmed the four premium program cards display their matching approved covers completely, with no horizontal overflow.
 - [x] Final verification passed: TypeScript check, 16 Vitest tests, and production build. The build retains only the existing non-blocking large-chunk warning.
+
+- [x] Remove the standalone Programs page and route Training Programs directly to the existing homepage PDF-plan section.
+- [x] Verify mobile Training Programs navigation closes the menu, scrolls to the four homepage PDF cards, and preserves all other pages; then run type, test, and production-build checks.
+- [x] Genuine 375px phone emulation confirmed Training Programs stays on the homepage, closes the menu, lands at the start of the PDF section, exposes all four cards, and has no horizontal overflow.
+- [x] Final verification passed: TypeScript check, 16 Vitest tests, and production build. The build retains only the existing non-blocking large-chunk warning.
