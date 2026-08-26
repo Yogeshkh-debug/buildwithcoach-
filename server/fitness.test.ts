@@ -39,7 +39,7 @@ describe("public article procedures", () => {
     expect(articles[0]).toHaveProperty("slug");
   }, 10_000);
 
-  it("includes the requested supplement amount sections and supplied in-guide visuals", async () => {
+  it("keeps supplement amount sections text-only so supplied artwork remains cover-only", async () => {
     const ctx = { user: null, req: {} as TrpcContext["req"], res: {} as TrpcContext["res"] } as TrpcContext;
     const caller = appRouter.createCaller(ctx);
     const creatine = await caller.articles.bySlug({ slug: "creatine-safety-basics" });
@@ -48,12 +48,13 @@ describe("public article procedures", () => {
     const wheySections = JSON.parse(whey!.body).sections as Array<{ title: string; visual?: { src: string } }>;
 
     expect(creatineSections).toEqual(expect.arrayContaining([
-      expect.objectContaining({ title: "How Much Creatine Do You Need Per Day?", visual: expect.objectContaining({ src: expect.stringContaining("creatine-daily-supplied") }) }),
-      expect.objectContaining({ title: "Final Verdict: Should You Take Creatine?", visual: expect.objectContaining({ src: expect.stringContaining("creatine-verdict-supplied") }) }),
+      expect.objectContaining({ title: "How Much Creatine Do You Need Per Day?" }),
+      expect.objectContaining({ title: "Final Verdict: Should You Take Creatine?" }),
     ]));
     expect(wheySections).toEqual(expect.arrayContaining([
-      expect.objectContaining({ title: "How Much Protein Do You Need Per Day?", visual: expect.objectContaining({ src: expect.stringContaining("whey-guide-supplied") }) }),
+      expect.objectContaining({ title: "How Much Protein Do You Need Per Day?" }),
     ]));
+    expect([...creatineSections, ...wheySections].every((section) => !section.visual)).toBe(true);
   }, 10_000);
 
   it("binds the five requested guide covers to their supplied managed assets", async () => {
@@ -65,6 +66,7 @@ describe("public article procedures", () => {
       "protein-for-men",
       "creatine-safety-basics",
       "why-you-keep-quitting",
+      "when-to-take-whey-protein",
     ].map(async (slug) => ({ slug, body: JSON.parse((await caller.articles.bySlug({ slug }))!.body) as { cover?: { src?: string } } })));
 
     expect(covers.map(({ slug, body }) => ({ slug, src: body.cover?.src }))).toEqual([
@@ -73,6 +75,7 @@ describe("public article procedures", () => {
       { slug: "protein-for-men", src: expect.stringContaining("protein-for-men-supplied") },
       { slug: "creatine-safety-basics", src: expect.stringContaining("creatine-cover-supplied") },
       { slug: "why-you-keep-quitting", src: expect.stringContaining("why-quitting-supplied") },
+      { slug: "when-to-take-whey-protein", src: expect.stringContaining("whey-guide-supplied") },
     ]);
   }, 10_000);
 });

@@ -133,3 +133,9 @@
 - [x] Browser checks confirmed the Guides route begins at scroll position zero, Back home returns to the top of the homepage, and all four PDF covers use the same blue stage color and `object-fit: contain`.
 - [x] Desktop and phone screenshots confirmed the new guide-cover images, whey in-guide image, and compact article cards render completely without cropping or horizontal overflow.
 - [x] Final verification passed: TypeScript check, 13 Vitest tests, and production build. The build retains only the existing non-blocking large-chunk warning.
+
+- [x] Remove the misplaced whey artwork from the article body and use it only as the whey guide cover.
+- [x] Apply one consistent source-preserving cover canvas so each supplied article visual is framed without cropping, stretching, or changing its original pixels.
+- [x] Verify the article library and detail pages at desktop and phone widths, then run type, test, and production-build checks.
+- [x] Phone and desktop checks confirmed the unaltered whey and creatine source art appears only in the 16:9 guide-cover canvas; article bodies contain no inline visual figures.
+- [x] Final verification passed: TypeScript check, 13 Vitest tests, and production build. The build retains only the existing non-blocking large-chunk warning.
