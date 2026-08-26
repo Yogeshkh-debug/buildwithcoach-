@@ -161,3 +161,10 @@
 - [x] Genuine 375px phone emulation confirmed the premium menu, seven requested actions, direct `/programs` route, four visible PDF plans, and no horizontal overflow.
 - [x] Security verification confirmed strict JPEG/PNG/WebP signatures and dimension limits, safe managed-storage keys, per-client capture throttling, reduced body limits, and production CSP/HSTS/anti-framing/no-sniff/referrer/permissions/cross-origin headers.
 - [x] Final verification passed: TypeScript check, 16 Vitest tests, and production build. The build retains only the existing non-blocking large-chunk warning.
+
+- [x] Remove the hero’s mismatched placeholder layer and use a single coordinated, source-preserving hero visual treatment.
+- [x] Redesign only the Programs page with four premium PDF cards that display the existing approved Home Zero, Gym Build, Fuel Plan, and Zero to Growth covers.
+- [x] Verify the hero and program covers at desktop and phone widths with no cropping, stretching, or background mismatch; then run type, test, and production-build checks.
+- [x] Sampled the supplied hero edge color and used it for the unified frame; the original 2112×1104 artwork now preserves its native aspect ratio without a separate placeholder layer.
+- [x] Desktop and 375px phone checks confirmed the four premium program cards display their matching approved covers completely, with no horizontal overflow.
+- [x] Final verification passed: TypeScript check, 16 Vitest tests, and production build. The build retains only the existing non-blocking large-chunk warning.
