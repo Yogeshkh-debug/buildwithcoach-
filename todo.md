@@ -111,4 +111,14 @@
 - [x] Refine the four-plan PDF strip with a framed scroll-snap presentation, navigation controls, and tactile touch/click zoom feedback inspired by the supplied motion reference.
 - [x] Verify the guide assets and PDF strip interactions at desktop and phone widths, then run the type, test, and production-build checks.
 - [x] Confirmed the inline creatine and whey assets decode at 7680px wide after entering the viewport; the PDF strip snaps horizontally, arrow navigation advances it, and touch feedback reaches a 1.035 scale before release.
-- [x] Final verification passed: TypeScript check, 11 Vitest tests, and production build. The build retains only the existing non-blocking large-chunk warning.
+- [x] Final verification passed: TypeScript check, 12 Vitest tests, and production build. The build retains only the existing non-blocking large-chunk warning.
+
+- [x] Use the supplied first image as the uncropped start-screen hero visual.
+- [x] Refine the mobile menu into the premium, two-column menu presentation indicated by the supplied reference image.
+- [x] Add the supplied Zero to Growth, Gym Build, Home Zero, and Fuel Plan artwork as uncropped PDF cover images in their matching program cards.
+- [x] Replace the unclear creatine guide visuals with the two newly supplied creatine graphics, placed only inside the relevant creatine sections.
+- [x] Replace the protein-guide visual with the supplied protein graphic, placed only inside the relevant whey section.
+- [x] Verify every supplied image uses an uncropped contain-fit treatment at desktop and phone widths, then run type, test, and production-build checks.
+- [x] Phone emulation confirmed the premium two-column menu, no horizontal overflow, and `contain` fitting for the hero and all four supplied PDF covers.
+- [x] Browser verification confirmed the supplied whey graphic decoded at 12288×6912, the first supplied creatine graphic at 6144×3456, the creatine verdict graphic at 1792×1344, and each rendered with `object-fit: contain`.
+- [x] Final verification passed: TypeScript check, 12 Vitest tests, and production build. The build retains only the existing non-blocking large-chunk warning.

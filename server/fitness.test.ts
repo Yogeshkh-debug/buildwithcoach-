@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { calculateCalorieTarget, calculateProteinTarget } from "../shared/fitness";
+import { programCatalog } from "../client/src/lib/content";
 import { appRouter } from "./routers";
 import type { TrpcContext } from "./_core/context";
 
@@ -17,6 +18,15 @@ describe("fitness calculations", () => {
 
   it("rejects implausible calculator inputs", () => {
     expect(() => calculateProteinTarget(20, "maintain")).toThrow("body weight");
+  });
+
+  it("keeps each PDF plan mapped to its matching supplied cover", () => {
+    expect(programCatalog.map(({ title, cover }) => ({ title, cover }))).toEqual([
+      { title: "Home Zero", cover: expect.stringContaining("home-zero-cover") },
+      { title: "Gym Build", cover: expect.stringContaining("gym-build-cover") },
+      { title: "Fuel Plan", cover: expect.stringContaining("fuel-plan-cover") },
+      { title: "Zero to Growth", cover: expect.stringContaining("zero-to-growth-cover") },
+    ]);
   });
 });
 
@@ -38,11 +48,11 @@ describe("public article procedures", () => {
     const wheySections = JSON.parse(whey!.body).sections as Array<{ title: string; visual?: { src: string } }>;
 
     expect(creatineSections).toEqual(expect.arrayContaining([
-      expect.objectContaining({ title: "How Much Creatine Do You Need Per Day?", visual: expect.objectContaining({ src: expect.stringContaining("creatine-daily-dose-8k") }) }),
-      expect.objectContaining({ title: "Final Verdict: Should You Take Creatine?", visual: expect.objectContaining({ src: expect.stringContaining("creatine-final-verdict-8k") }) }),
+      expect.objectContaining({ title: "How Much Creatine Do You Need Per Day?", visual: expect.objectContaining({ src: expect.stringContaining("creatine-daily-supplied") }) }),
+      expect.objectContaining({ title: "Final Verdict: Should You Take Creatine?", visual: expect.objectContaining({ src: expect.stringContaining("creatine-verdict-supplied") }) }),
     ]));
     expect(wheySections).toEqual(expect.arrayContaining([
-      expect.objectContaining({ title: "How Much Protein Do You Need Per Day?", visual: expect.objectContaining({ src: expect.stringContaining("whey-protein-target-8k") }) }),
+      expect.objectContaining({ title: "How Much Protein Do You Need Per Day?", visual: expect.objectContaining({ src: expect.stringContaining("whey-protein-supplied") }) }),
     ]));
   }, 10_000);
 });
