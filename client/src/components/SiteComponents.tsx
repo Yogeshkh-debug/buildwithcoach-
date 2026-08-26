@@ -75,7 +75,9 @@ export function SiteHeader() {
         </div>
       </div>
       {mobileOpen ? <nav className="mobile-nav" aria-label="Mobile navigation">
-        <p>Navigate Build With Coach</p><button onClick={() => goTo("/")}>Home</button><button onClick={() => goTo("#start-here")}>Start here</button><button onClick={() => goTo("/articles")}>Guides</button><button onClick={() => goTo("/tools")}>Free tools</button><button onClick={() => goTo("#free-plan")}>Free plan</button><button onClick={() => goTo("/about")}>About</button>
+        <div className="mobile-nav-heading"><p>Navigate Build With Coach</p><span>Clear. Simple. Useful.</span></div>
+        <button onClick={() => goTo("/")}>Home</button><button onClick={() => goTo("#start-here")}>Start here</button><button onClick={() => goTo("/articles")}>Guides</button><button onClick={() => goTo("/tools")}>Free tools</button><button onClick={() => goTo("#free-plan")}>Free plan</button><button onClick={() => goTo("/about")}>About</button>
+        <button className="mobile-programs-button" onClick={() => goTo("/programs")}>Training Programs <ArrowDownRight size={18} /></button>
       </nav> : null}
     </header>
     {searchOpen ? <div className="search-scrim" role="dialog" aria-modal="true" aria-label="Search Build With Coach guides">

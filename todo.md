@@ -153,3 +153,11 @@
 
 - [x] Recheck guide detail-page header covers at desktop and phone widths after the edge-to-edge fit correction.
 - [x] Confirmed the creatine and whey header covers decode at 2048×1152 and render as complete 16:9 frames without padding, cropping, stretching, or inline placeholder art.
+
+- [x] Refine only the mobile menu into a premium grid presentation and add a Training Programs control that routes directly to the four-PDF program page.
+- [x] Review and harden public upload validation, public input handling, and applicable browser response security controls without changing unrelated site behavior.
+- [x] Add or update regression tests for the security-sensitive validation logic and the new menu route.
+- [x] Verify the mobile menu, Training Programs navigation, upload rejection behavior, browser security headers, and desktop/mobile layouts; then run type, test, and production-build checks.
+- [x] Genuine 375px phone emulation confirmed the premium menu, seven requested actions, direct `/programs` route, four visible PDF plans, and no horizontal overflow.
+- [x] Security verification confirmed strict JPEG/PNG/WebP signatures and dimension limits, safe managed-storage keys, per-client capture throttling, reduced body limits, and production CSP/HSTS/anti-framing/no-sniff/referrer/permissions/cross-origin headers.
+- [x] Final verification passed: TypeScript check, 16 Vitest tests, and production build. The build retains only the existing non-blocking large-chunk warning.

@@ -2,7 +2,7 @@ import { z } from "zod";
 import { COOKIE_NAME } from "@shared/const";
 import { getSessionCookieOptions } from "./_core/cookies";
 import { systemRouter } from "./_core/systemRouter";
-import { publicProcedure, router } from "./_core/trpc";
+import { publicCaptureProcedure, publicProcedure, router } from "./_core/trpc";
 import {
   addContactMessage,
   addCartRequest,
@@ -17,6 +17,7 @@ import {
 
 const emailSchema = z.string().trim().email("Enter a valid email address.").max(320);
 const nameSchema = z.string().trim().min(2, "Enter at least 2 characters.").max(160);
+const storyPhotoNameSchema = z.string().trim().min(1).max(120).regex(/^[A-Za-z0-9][A-Za-z0-9._-]*\.(?:jpg|jpeg|png|webp)$/i, "Use a simple JPG, PNG, or WebP filename.");
 
 export const appRouter = router({
   system: systemRouter,
@@ -36,17 +37,17 @@ export const appRouter = router({
     list: publicProcedure.query(() => listFutureProducts()),
   }),
   captures: router({
-    newsletter: publicProcedure.input(z.object({ name: z.string().trim().max(160).optional(), email: emailSchema, source: z.string().max(80) })).mutation(({ input }) => addNewsletterSubscriber(input)),
-    freePlan: publicProcedure.input(z.object({ name: nameSchema, email: emailSchema })).mutation(({ input }) => addFreePlanSignup(input)),
-    cartRequest: publicProcedure.input(z.object({ name: nameSchema, email: emailSchema, planNames: z.array(z.string().trim().min(2).max(160)).min(1).max(8) })).mutation(({ input }) => addCartRequest(input)),
-    waitlist: publicProcedure.input(z.object({ name: z.string().trim().max(160).optional(), email: emailSchema })).mutation(({ input }) => addWaitlistRequest(input)),
-    contact: publicProcedure.input(z.object({ name: nameSchema, email: emailSchema, message: z.string().trim().min(10, "Write at least 10 characters.").max(3000) })).mutation(({ input }) => addContactMessage(input)),
-    story: publicProcedure.input(z.object({
+    newsletter: publicCaptureProcedure.input(z.object({ name: z.string().trim().max(160).optional(), email: emailSchema, source: z.string().trim().min(2).max(80) })).mutation(({ input }) => addNewsletterSubscriber(input)),
+    freePlan: publicCaptureProcedure.input(z.object({ name: nameSchema, email: emailSchema })).mutation(({ input }) => addFreePlanSignup(input)),
+    cartRequest: publicCaptureProcedure.input(z.object({ name: nameSchema, email: emailSchema, planNames: z.array(z.string().trim().min(2).max(160)).min(1).max(8) })).mutation(({ input }) => addCartRequest(input)),
+    waitlist: publicCaptureProcedure.input(z.object({ name: z.string().trim().max(160).optional(), email: emailSchema })).mutation(({ input }) => addWaitlistRequest(input)),
+    contact: publicCaptureProcedure.input(z.object({ name: nameSchema, email: emailSchema, message: z.string().trim().min(10, "Write at least 10 characters.").max(3000) })).mutation(({ input }) => addContactMessage(input)),
+    story: publicCaptureProcedure.input(z.object({
       name: nameSchema,
       email: emailSchema,
       story: z.string().trim().min(50, "Share at least 50 characters so we understand your story.").max(3000),
-      photoData: z.string().max(3_000_000),
-      photoName: z.string().trim().min(1).max(260),
+      photoData: z.string().max(2_800_000),
+      photoName: storyPhotoNameSchema,
       photoMime: z.enum(["image/jpeg", "image/png", "image/webp"]),
       consent: z.literal(true, { error: "You need to confirm publication consent before submitting." }),
     })).mutation(({ input }) => addStorySubmission(input)),

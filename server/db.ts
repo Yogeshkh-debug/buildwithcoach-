@@ -14,6 +14,7 @@ import {
 import { articleSeeds, serializeArticleBody } from "./articleSeed";
 import { ENV } from "./_core/env";
 import { storagePut } from "./storage";
+import { assertSafeStoryImage } from "./security";
 
 let _db: ReturnType<typeof drizzle> | null = null;
 let articleSeedPromise: Promise<void> | null = null;
@@ -160,7 +161,7 @@ export async function addStorySubmission(input: { name: string; email: string; s
   const dataMatch = input.photoData.match(/^data:(image\/(?:jpeg|png|webp));base64,([A-Za-z0-9+/=]+)$/);
   if (!dataMatch || dataMatch[1] !== input.photoMime) throw new Error("Upload a valid JPG, PNG, or WebP photo.");
   const bytes = Buffer.from(dataMatch[2], "base64");
-  if (bytes.length === 0 || bytes.length > 2 * 1024 * 1024) throw new Error("Keep the photo under 2 MB.");
+  assertSafeStoryImage(bytes, input.photoMime);
 
   const extension = input.photoMime === "image/jpeg" ? "jpg" : input.photoMime.split("/")[1];
   const uploaded = await storagePut(`community-stories/${crypto.randomUUID()}.${extension}`, bytes, input.photoMime);
