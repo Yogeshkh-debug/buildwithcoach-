@@ -122,3 +122,14 @@
 - [x] Phone emulation confirmed the premium two-column menu, no horizontal overflow, and `contain` fitting for the hero and all four supplied PDF covers.
 - [x] Browser verification confirmed the supplied whey graphic decoded at 12288×6912, the first supplied creatine graphic at 6144×3456, the creatine verdict graphic at 1792×1344, and each rendered with `object-fit: contain`.
 - [x] Final verification passed: TypeScript check, 12 Vitest tests, and production build. The build retains only the existing non-blocking large-chunk warning.
+
+- [x] Replace the awkward white PDF-cover staging with a coordinated placeholder background that matches the supplied cover artwork without cropping it.
+- [x] Ensure the Guides route opens at the top and provides a clear route back to the homepage.
+- [x] Use the supplied home-vs-gym visual as that guide’s uncropped cover image.
+- [x] Use the supplied form-fix visual for the Five Mistakes article and the supplied nutrition visual for the Protein for Men article.
+- [x] Use the supplied creatine visual as the creatine guide cover and replace the whey in-article graphic with the supplied final protein visual.
+- [x] Use the supplied habit-reset visual for the Why You Keep Quitting article.
+- [x] Verify all mapped images have coordinated backgrounds, contain-fit presentation, usable guide navigation, and no mobile or desktop overflow; then run type, test, and production-build checks.
+- [x] Browser checks confirmed the Guides route begins at scroll position zero, Back home returns to the top of the homepage, and all four PDF covers use the same blue stage color and `object-fit: contain`.
+- [x] Desktop and phone screenshots confirmed the new guide-cover images, whey in-guide image, and compact article cards render completely without cropping or horizontal overflow.
+- [x] Final verification passed: TypeScript check, 13 Vitest tests, and production build. The build retains only the existing non-blocking large-chunk warning.

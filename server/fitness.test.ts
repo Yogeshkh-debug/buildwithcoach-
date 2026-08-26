@@ -52,8 +52,28 @@ describe("public article procedures", () => {
       expect.objectContaining({ title: "Final Verdict: Should You Take Creatine?", visual: expect.objectContaining({ src: expect.stringContaining("creatine-verdict-supplied") }) }),
     ]));
     expect(wheySections).toEqual(expect.arrayContaining([
-      expect.objectContaining({ title: "How Much Protein Do You Need Per Day?", visual: expect.objectContaining({ src: expect.stringContaining("whey-protein-supplied") }) }),
+      expect.objectContaining({ title: "How Much Protein Do You Need Per Day?", visual: expect.objectContaining({ src: expect.stringContaining("whey-guide-supplied") }) }),
     ]));
+  }, 10_000);
+
+  it("binds the five requested guide covers to their supplied managed assets", async () => {
+    const ctx = { user: null, req: {} as TrpcContext["req"], res: {} as TrpcContext["res"] } as TrpcContext;
+    const caller = appRouter.createCaller(ctx);
+    const covers = await Promise.all([
+      "home-vs-gym-workouts",
+      "fix-common-training-mistakes",
+      "protein-for-men",
+      "creatine-safety-basics",
+      "why-you-keep-quitting",
+    ].map(async (slug) => ({ slug, body: JSON.parse((await caller.articles.bySlug({ slug }))!.body) as { cover?: { src?: string } } })));
+
+    expect(covers.map(({ slug, body }) => ({ slug, src: body.cover?.src }))).toEqual([
+      { slug: "home-vs-gym-workouts", src: expect.stringContaining("home-vs-gym-supplied") },
+      { slug: "fix-common-training-mistakes", src: expect.stringContaining("training-form-fixes-supplied") },
+      { slug: "protein-for-men", src: expect.stringContaining("protein-for-men-supplied") },
+      { slug: "creatine-safety-basics", src: expect.stringContaining("creatine-cover-supplied") },
+      { slug: "why-you-keep-quitting", src: expect.stringContaining("why-quitting-supplied") },
+    ]);
   }, 10_000);
 });
 

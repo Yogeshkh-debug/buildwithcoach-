@@ -7,6 +7,7 @@ export type ArticleSection = {
 
 export type ArticleContent = {
   intro: string[];
+  cover?: { src: string; alt: string };
   sections: ArticleSection[];
   cta: string;
 };

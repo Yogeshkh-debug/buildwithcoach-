@@ -11,6 +11,7 @@ export type ArticleSeed = {
   excerpt: string;
   category: string;
   intro: string[];
+  cover?: { src: string; alt: string };
   sections: ArticleSection[];
   cta: string;
 };
@@ -55,6 +56,7 @@ export const articleSeeds: ArticleSeed[] = [
     excerpt: "Spoiler: both work. Here’s how to choose.",
     category: "Training basics",
     intro: ["Some people act like the gym is a sacred temple. Others act like home workouts are the holy answer. Both sides are overconfident."],
+    cover: { src: "/manus-storage/home-vs-gym-supplied_5fecf70f.webp", alt: "Home bodyweight training compared with a gym strength setup" },
     sections: [
       { title: "The Real Answer", paragraphs: ["Fat loss does not care where you train. Fat loss cares whether you stay consistent.", "You can lose fat at home. You can lose fat in a gym. You can also fail in both places if you keep quitting."] },
       { title: "Home Workouts", paragraphs: ["Home is a useful start when it makes showing up easier."], bullets: ["No travel time", "Easy to start", "Less intimidating", "Good for beginners", "Limited equipment", "Harder to progress long term"] },
@@ -70,6 +72,7 @@ export const articleSeeds: ArticleSeed[] = [
     excerpt: "Stop overcomplicating it. Here’s the number that matters.",
     category: "Nutrition",
     intro: ["Protein gets treated like magic dust. It is not magic. It is just one of the most useful tools for building muscle, keeping muscle, and staying full."],
+    cover: { src: "/manus-storage/protein-for-men-supplied_c09c9c87.webp", alt: "Protein-rich food and a shaker for practical nutrition" },
     sections: [
       { title: "Why Protein Matters", paragraphs: ["Protein supports recovery, muscle building, and staying full longer."], bullets: ["Muscle repair", "Muscle building", "Recovery", "Fat loss support", "Staying full longer"] },
       { title: "How Much You Need", paragraphs: ["A simple target for most men is 1.6 to 2.2 grams of protein per kilogram of bodyweight. If you weigh 80 kg, that is roughly 130 to 175 grams per day."] },
@@ -85,6 +88,7 @@ export const articleSeeds: ArticleSeed[] = [
     excerpt: "It’s not motivation. It’s your system.",
     category: "Mindset",
     intro: ["The pattern is always the same: new plan, new excitement, new ‘this time I’m serious.’ Then two weeks later, one bad day destroys the whole thing.", "That is not a motivation problem. That is a system problem."],
+    cover: { src: "/manus-storage/why-quitting-supplied_098f24b8.png", alt: "An avoidable comfort-zone habit that keeps progress stuck" },
     sections: [
       { title: "Why Motivation Is Not Enough", paragraphs: ["Motivation disappears. That is normal. If your plan depends on motivation, it is already weak."] },
       { title: "Why People Quit", paragraphs: ["Quitting usually comes from a plan that cannot survive a normal life."], bullets: ["The plan is too extreme", "There is no structure", "There is no progress tracking", "One bad meal becomes a full restart"] },
@@ -115,6 +119,7 @@ export const articleSeeds: ArticleSeed[] = [
     excerpt: "More sweat is not better training. Fix these simple mistakes and make each rep count.",
     category: "Form fixes",
     intro: ["You do not need perfect genetics or a loud gym personality. You do need to stop wasting good effort on sloppy habits.", "Fix one thing at a time. Training gets better when your next rep has a purpose."],
+    cover: { src: "/manus-storage/training-form-fixes-supplied_bd7976ba.webp", alt: "A form comparison showing an unstable lift and a controlled lift" },
     sections: [
       { title: "Mistake 1: Rushing Every Rep", paragraphs: ["Fast reps can hide weak positions. Slow the lowering phase just enough to control it, then use a steady, deliberate lift.", "If you cannot control the weight, it is controlling you."] },
       { title: "Mistake 2: Adding Weight Before You Earn It", paragraphs: ["More weight is only progress when your form survives it. First add clean reps. Then add a small amount of load.", "Your ego does not get credit for the rep. Your muscles do."] },
@@ -130,6 +135,7 @@ export const articleSeeds: ArticleSeed[] = [
     excerpt: "The practical safety facts, the myths, and the small group that should ask a clinician first.",
     category: "Nutrition & supplements",
     intro: ["Creatine gets blamed for almost everything: kidney problems, hair loss, bloating, and scale weight. Most of that fear comes from half-read claims instead of a clear look at what the evidence actually says.", "Here is the useful version: for most healthy adults, creatine monohydrate is one of the better-studied supplements. It is a small tool, not a personality, and it never replaces training, food, or sleep."],
+    cover: { src: "/manus-storage/creatine-cover-supplied_76abec4b.jpg", alt: "Creatine monohydrate illustration used for the creatine guide cover" },
     sections: [
       { title: "The 60-Second Version", paragraphs: ["Creatine helps your muscles rapidly remake energy for short, hard efforts such as lifting, sprinting, and repeated high-intensity work. Your body already makes some, and food supplies a little more.", "A supplement simply raises the amount stored in muscle. Plain creatine monohydrate is the simple, commonly used option."] },
       { title: "Kidneys: What Actually Matters", paragraphs: ["In healthy adults using normal doses, current evidence does not show creatine monohydrate damaging kidney function. A blood marker called creatinine can rise because of normal creatine turnover, so that result needs context.", "If you have kidney disease, take medication that affects kidney function, or have been told to restrict supplements, do not guess. Ask your clinician first."] },
@@ -153,7 +159,7 @@ export const articleSeeds: ArticleSeed[] = [
       { title: "Before Training", paragraphs: ["If it has been several hours since your last meal, a whey shake 45–60 minutes before training can be an easy way to arrive fueled. Keep it light enough that your stomach is not arguing with your squat session.", "A thick shake immediately before hard training is not toughness. It is an easy way to feel sick. Give yourself breathing room."] },
       { title: "Morning, Between Meals, and Rest Days", paragraphs: ["Whey works in the morning, between meals, and on rest days if it stops you from ending the day well below your protein target. On rest days, muscle repair is still happening.", "Before bed, a slower food-based protein source may keep you fuller. The bigger rule stays the same: use the option you can repeat."] },
       { title: "The Timing Hierarchy", paragraphs: ["Get the big picture right before you obsess over the minute on the clock. Protein timing is useful only after your daily target is close to handled."], bullets: ["Hit your total daily protein first", "Spread protein across three or four meals", "Use whey before or after training when it makes the day easier", "Use it to close a gap, not replace every meal"] },
-      { title: "How Much Protein Do You Need Per Day?", paragraphs: ["For muscle growth, a useful everyday range for most adults who train is around 1.6–2.2 grams of protein per kilogram of bodyweight. The exact number does not need to become another thing you stress about; use it as a practical target and adjust your meals around it.", "Whey can make the target easier to reach, especially when a meal is not available. It does not need to replace food. Build your day around normal protein-rich meals, then use a shake to close the gap."], bullets: ["Aim for 1.6–2.2 g per kg of bodyweight", "Spread protein across three or four meals", "Use whey when it makes the day easier", "Keep real meals doing most of the work"], visual: { src: "/manus-storage/whey-protein-supplied_14b27656.webp", alt: "How much protein you need per day" } },
+      { title: "How Much Protein Do You Need Per Day?", paragraphs: ["For muscle growth, a useful everyday range for most adults who train is around 1.6–2.2 grams of protein per kilogram of bodyweight. The exact number does not need to become another thing you stress about; use it as a practical target and adjust your meals around it.", "Whey can make the target easier to reach, especially when a meal is not available. It does not need to replace food. Build your day around normal protein-rich meals, then use a shake to close the gap."], bullets: ["Aim for 1.6–2.2 g per kg of bodyweight", "Spread protein across three or four meals", "Use whey when it makes the day easier", "Keep real meals doing most of the work"], visual: { src: "/manus-storage/whey-guide-supplied_c37e3947.jpg", alt: "Whey protein timing visual" } },
       { title: "Common Timing Mistakes", paragraphs: ["Do not use whey as an excuse to ignore real meals. Do not double-scoop because marketing made you nervous. And do not treat timing as more important than total intake."], bullets: ["Skipping protein on rest days", "Relying on shakes as your only real meal", "Drinking a heavy shake immediately before intense training", "Ignoring protein quality in the rest of your diet"] },
       { title: "The Strict Coach Rule", paragraphs: ["First build meals around protein. Use whey to close the gap, not to make the plan look more serious. If it helps you hit your target consistently, it is doing its job."] },
     ],
@@ -162,5 +168,5 @@ export const articleSeeds: ArticleSeed[] = [
 ];
 
 export function serializeArticleBody(article: ArticleSeed) {
-  return JSON.stringify({ intro: article.intro, sections: article.sections, cta: article.cta });
+  return JSON.stringify({ intro: article.intro, cover: article.cover, sections: article.sections, cta: article.cta });
 }
