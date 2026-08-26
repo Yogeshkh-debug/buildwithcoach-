@@ -176,3 +176,6 @@
 
 - [x] Add a premium Common Mistakes board with pinned sticky-note cards and direct coach-style fixes, without changing existing homepage sections.
 - [x] Verify the pinned-note board is readable and balanced at desktop and phone widths, then run type, test, and production-build checks.
+
+- [x] Repair the Common Mistakes board guide link so it opens the existing mistakes article rather than the “That guide moved” page.
+- [x] Verify the corrected guide link on phone layout and run regression checks.
