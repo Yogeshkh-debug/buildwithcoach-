@@ -179,3 +179,17 @@
 
 - [x] Repair the Common Mistakes board guide link so it opens the existing mistakes article rather than the “That guide moved” page.
 - [x] Verify the corrected guide link on phone layout and run regression checks.
+
+- [x] Inspect the visible Made with Manus badge to determine whether it is site-owned code or a platform preview overlay.
+- [x] Remove the badge only if it is site-owned; otherwise report the available platform-level control.
+
+- [ ] Confirm GitHub export availability and repository-name requirements for the requested Build With Coach repository.
+- [ ] Export the complete project source and configuration to the requested GitHub repository after confirming the target account and publish action.
+- [ ] Verify the repository contents and report the repository link.
+
+- [ ] Resolve the connected GitHub account permission required to create the confirmed public repository, then retry without exposing credentials.
+- [ ] Push the full project only after the user updates repository-creation access and confirm the resulting repository link.
+
+- [ ] Initiate the GitHub authorization flow so the user can approve repository-creation access directly.
+
+- [ ] Diagnose the reported GitHub authorization disconnection and restore a stable repository-creation approval path.
