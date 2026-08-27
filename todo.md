@@ -259,15 +259,15 @@
 - [x] Build the confirmed in-site private My Programs page where buyers use their email identity to view only the programs assigned to them and can return anytime.
 - [ ] Send varied Sunday weekly challenges at 6:00 PM in each opted-in PDF buyer’s saved local time zone.
 
-- [ ] Replace the built-in scheduler dependency with a Vercel Cron-compatible, protected Sunday challenge trigger.
-- [ ] Add Vercel deployment configuration and a clear environment-variable handoff without exposing secrets.
-- [ ] Verify the Vercel-ready build and protected cron path before handing the project back for deployment.
+- [x] Do not replace the current scheduler with Vercel Cron after the owner chose the no-extra-cost current hosting workflow.
+- [x] Documented the Vercel alternative and its external database and private-PDF-storage requirement without exposing secrets.
+- [x] Close Vercel-specific cron verification because that deployment path is not selected.
 
-- [ ] Remove automatic Sunday challenge scheduling after the owner chose manual weekly outreach for the Vercel free-plan deployment.
+- [x] Do not remove automatic Sunday challenge scheduling after the owner later chose current-hosting automation.
 - [x] Send one owner-approved real 7-Day Fat Loss Starter My Programs access email to shopurbancanvas@gmail.com and record the provider outcome without exposing credentials.
-- [ ] Create a Vercel free-plan handoff that identifies the required server, database, storage, and email environment configuration without adding a recurring cron.
+- [x] Create a Vercel free-plan handoff that identifies the required server, database, storage, and email environment configuration without adding a recurring cron.
 
-- [ ] Replace the local-time Sunday scheduler with one protected global Sunday Vercel Cron run for opted-in PDF buyers.
+- [x] Do not replace the local-time scheduler with a global Sunday Vercel Cron after the current-hosting option was selected.
 - [x] Send and verify the owner-approved real 7-Day Fat Loss Starter My Programs access email at shopurbancanvas@gmail.com before Vercel handoff.
 
 - [x] Investigate why the provider-accepted owner test email was not received at shopurbancanvas@gmail.com and correct any website-side delivery issue.
@@ -289,4 +289,6 @@
 
 - [x] Fix the reported immediate invalid or already-used result for a newly issued My Programs 6-digit access code.
 - [ ] Activate Sunday 6 PM local-time automatic challenge delivery for opted-in PDF buyers after the verified checkpoint is published.
-- [ ] Prepare a complete owner report covering PDF attachments, private program access, email-delivery limits, weekly automation, and owner controls.
+- [x] Prepare a complete owner report covering PDF attachments, private program access, email-delivery limits, weekly automation, and owner controls.
+
+- [x] Add buyer-facing guidance to check Inbox, Spam, Promotions, and All Mail for the PDF attachment email.
