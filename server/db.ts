@@ -229,6 +229,22 @@ export async function createBuyerAccessCode(email: string) {
   return { code, expiresAt };
 }
 
+type BuyerAccessCodeCandidate = {
+  codeHash: string;
+  usedAt: Date | null;
+  expiresAt: Date;
+  attempts: number;
+};
+
+export function selectRedeemableBuyerAccessCode<T extends BuyerAccessCodeCandidate>(records: T[], expectedCodeHash: string, now = Date.now()) {
+  return records.find((record) => (
+    !record.usedAt
+    && record.expiresAt.getTime() >= now
+    && record.attempts < 5
+    && record.codeHash === expectedCodeHash
+  )) ?? null;
+}
+
 export async function redeemBuyerAccessCode(input: { email: string; code: string }) {
   const db = await getDb();
   if (!db) return false;
@@ -236,11 +252,12 @@ export async function redeemBuyerAccessCode(input: { email: string; code: string
   const records = await db.select().from(buyerAccessCodes)
     .where(eq(buyerAccessCodes.email, normalizedEmail))
     .orderBy(desc(buyerAccessCodes.createdAt))
-    .limit(1);
-  const record = records[0];
-  if (!record || record.usedAt || record.expiresAt.getTime() < Date.now() || record.attempts >= 5) return false;
-  if (record.codeHash !== hashBuyerAccessCode(normalizedEmail, input.code)) {
-    await db.update(buyerAccessCodes).set({ attempts: record.attempts + 1 }).where(eq(buyerAccessCodes.id, record.id));
+    .limit(12);
+  const expectedCodeHash = hashBuyerAccessCode(normalizedEmail, input.code);
+  const record = selectRedeemableBuyerAccessCode(records, expectedCodeHash);
+  if (!record) {
+    const latestAttemptableRecord = records.find((candidate) => !candidate.usedAt && candidate.expiresAt.getTime() >= Date.now() && candidate.attempts < 5);
+    if (latestAttemptableRecord) await db.update(buyerAccessCodes).set({ attempts: latestAttemptableRecord.attempts + 1 }).where(eq(buyerAccessCodes.id, latestAttemptableRecord.id));
     return false;
   }
   const updated = await db.update(buyerAccessCodes).set({ usedAt: new Date() })

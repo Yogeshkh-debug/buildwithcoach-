@@ -284,3 +284,9 @@
 - [x] Investigate the clarified Mailjet dashboard “disconnected from server” state and distinguish it from the email API’s delivery outcome.
 
 - [x] Fix the reported AccessDenied error when an authorized buyer opens a PDF from the private My Programs page, without exposing permanent public links.
+
+- [x] Confirm Sunday 6 PM local-time automatic weekly challenges for opted-in PDF buyers on current hosting.
+
+- [x] Fix the reported immediate invalid or already-used result for a newly issued My Programs 6-digit access code.
+- [ ] Activate Sunday 6 PM local-time automatic challenge delivery for opted-in PDF buyers after the verified checkpoint is published.
+- [ ] Prepare a complete owner report covering PDF attachments, private program access, email-delivery limits, weekly automation, and owner controls.
