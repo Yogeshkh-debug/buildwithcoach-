@@ -248,3 +248,10 @@
 - [x] Keep Brevo out of the delivery workflow after the owner selected Resend instead.
 - [x] Add Resend as a backup only for genuine Mailjet technical failures, while keeping Mailjet daily-limit and account-limit outcomes out of the fallback path.
 - [x] Verify primary Mailjet delivery, eligible Resend backup delivery, and daily-limit non-fallback behavior without exposing either provider credential.
+
+- [ ] Show immediate, clear checkout feedback while selected PDF delivery is being prepared, without claiming the email is sent before provider confirmation.
+- [ ] Implement a secure durable-access model for only the buyer’s selected program PDFs, subject to provider attachment-size and account-access constraints.
+- [ ] Add explicit weekly-challenge consent and ensure non-opted-in cart buyers do not receive marketing email.
+- [ ] Add a varied, safety-reviewed weekly challenge library with a no-immediate-repeat rule.
+- [ ] Configure the owner-controlled Sunday weekly-challenge delivery job after the exact send time and published-site requirement are confirmed.
+- [ ] Accept and validate the owner’s supplied Build With Coach 7-Day Fat Loss Starter PDF before activating freebie delivery.
