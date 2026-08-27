@@ -1,4 +1,4 @@
-import { int, mysqlEnum, mysqlTable, text, timestamp, varchar } from "drizzle-orm/mysql-core";
+import { index, int, mysqlEnum, mysqlTable, text, timestamp, uniqueIndex, varchar } from "drizzle-orm/mysql-core";
 
 export const users = mysqlTable("users", {
   id: int("id").autoincrement().primaryKey(),
@@ -30,6 +30,11 @@ export const emailSubscribers = mysqlTable("email_subscribers", {
   email: varchar("email", { length: 320 }).notNull().unique(),
   consent: int("consent").default(1).notNull(),
   source: varchar("source", { length: 80 }).notNull(),
+  isPdfBuyer: int("isPdfBuyer").default(0).notNull(),
+  weeklyChallengeOptIn: int("weeklyChallengeOptIn").default(0).notNull(),
+  timeZone: varchar("timeZone", { length: 64 }).default("UTC").notNull(),
+  lastWeeklyChallengeWeek: varchar("lastWeeklyChallengeWeek", { length: 16 }),
+  unsubscribedAt: timestamp("unsubscribedAt"),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
 });
 
@@ -78,6 +83,41 @@ export const pdfDeliveryItems = mysqlTable("pdf_delivery_items", {
   storageKey: varchar("storageKey", { length: 320 }).notNull(),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
 });
+
+export const buyerAccessCodes = mysqlTable("buyer_access_codes", {
+  id: int("id").autoincrement().primaryKey(),
+  email: varchar("email", { length: 320 }).notNull(),
+  codeHash: varchar("codeHash", { length: 128 }).notNull(),
+  expiresAt: timestamp("expiresAt").notNull(),
+  usedAt: timestamp("usedAt"),
+  attempts: int("attempts").default(0).notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+}, (table) => [
+  index("buyer_access_codes_email_idx").on(table.email),
+]);
+
+export const weeklyChallengeSchedules = mysqlTable("weekly_challenge_schedules", {
+  id: int("id").autoincrement().primaryKey(),
+  scheduleCronTaskUid: varchar("scheduleCronTaskUid", { length: 65 }).notNull().unique(),
+  enabled: int("enabled").default(1).notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export const weeklyChallengeDeliveries = mysqlTable("weekly_challenge_deliveries", {
+  id: int("id").autoincrement().primaryKey(),
+  subscriberId: int("subscriberId").notNull(),
+  weekKey: varchar("weekKey", { length: 16 }).notNull(),
+  challengeKey: varchar("challengeKey", { length: 80 }).notNull(),
+  status: varchar("status", { length: 32 }).default("pending").notNull(),
+  providerMessageId: varchar("providerMessageId", { length: 255 }),
+  errorMessage: text("errorMessage"),
+  sentAt: timestamp("sentAt"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+}, (table) => [
+  uniqueIndex("weekly_challenge_deliveries_subscriber_week_uq").on(table.subscriberId, table.weekKey),
+]);
 
 export const contactMessages = mysqlTable("contact_messages", {
   id: int("id").autoincrement().primaryKey(),

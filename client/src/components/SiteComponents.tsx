@@ -72,13 +72,13 @@ export function SiteHeader() {
         <button className="wordmark" type="button" onClick={() => goTo("/")} aria-label="Build With Coach home">BUILD WITH <strong>COACH</strong></button>
         <div className="header-actions">
           <button type="button" className="icon-action" onClick={() => setSearchOpen(true)} aria-label="Search guides"><Search size={18} /></button>
-          <button type="button" className="icon-action account-control" onClick={() => goTo("/login")} aria-label="Open account"><CircleUserRound size={18} /></button>
+          <button type="button" className="icon-action account-control" onClick={() => goTo("/my-programs")} aria-label="Open My Programs"><CircleUserRound size={18} /></button>
           <PremiumCartButton />
         </div>
       </div>
       {mobileOpen ? <nav className="mobile-nav" aria-label="Mobile navigation">
         <div className="mobile-nav-heading"><p>Navigate Build With Coach</p><span>Clear. Simple. Useful.</span></div>
-        <button onClick={() => goTo("/")}>Home</button><button onClick={() => goTo("#start-here")}>Start here</button><button onClick={() => goTo("/articles")}>Guides</button><button onClick={() => goTo("/tools")}>Free tools</button><button onClick={() => goTo("#free-plan")}>Free plan</button><button onClick={() => goTo("/about")}>About</button>
+        <button onClick={() => goTo("/")}>Home</button><button onClick={() => goTo("#start-here")}>Start here</button><button onClick={() => goTo("/articles")}>Guides</button><button onClick={() => goTo("/tools")}>Free tools</button><button onClick={() => goTo("#free-plan")}>Free plan</button><button onClick={() => goTo("/my-programs")}>My Programs</button><button onClick={() => goTo("/about")}>About</button>
         <button className="mobile-programs-button" onClick={() => goTo("#training-programs")}>Training Programs <ArrowDownRight size={18} /></button>
       </nav> : null}
     </header>
@@ -107,21 +107,26 @@ export function CartAddedToast() {
 
 type DeliveryResult = { deliveryStatus?: "sent" | "limit_reached" | "failed" };
 
-export function FreePlanForm({ compact = false, source = "free_plan", onSuccess, planNames = [] }: { compact?: boolean; source?: string; onSuccess?: (result?: DeliveryResult) => void; planNames?: string[] }) {
+export function FreePlanForm({ compact = false, source = "free_plan", onSuccess, onRequestStarted, onRequestFailed, planNames = [] }: { compact?: boolean; source?: string; onSuccess?: (result?: DeliveryResult) => void; onRequestStarted?: () => void; onRequestFailed?: () => void; planNames?: string[] }) {
   const mutation = trpc.captures.freePlan.useMutation();
   const cartMutation = trpc.captures.cartRequest.useMutation();
   const { notice, setNotice } = useFormToast();
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [weeklyChallengeOptIn, setWeeklyChallengeOptIn] = useState(false);
+  const timeZone = useMemo(() => {
+    try { return Intl.DateTimeFormat().resolvedOptions().timeZone || "UTC"; } catch { return "UTC"; }
+  }, []);
   const submit = async (event: FormEvent) => {
     event.preventDefault();
     const nextErrors = { name: required(name, "name"), email: validEmail(email) };
     setErrors(nextErrors);
     if (Object.values(nextErrors).some(Boolean)) return;
     try {
+      if (planNames.length) onRequestStarted?.();
       const result = planNames.length
-        ? await cartMutation.mutateAsync({ name: name.trim(), email: email.trim(), planNames })
+        ? await cartMutation.mutateAsync({ name: name.trim(), email: email.trim(), planNames, weeklyChallengeOptIn, timeZone })
         : await mutation.mutateAsync({ name: name.trim(), email: email.trim() });
       const candidateStatus = "deliveryStatus" in result ? result.deliveryStatus : undefined;
       const deliveryStatus: DeliveryResult["deliveryStatus"] = candidateStatus === "sent" || candidateStatus === "limit_reached" || candidateStatus === "failed"
@@ -137,10 +142,11 @@ export function FreePlanForm({ compact = false, source = "free_plan", onSuccess,
           : `You’re in, ${firstName}. Check your inbox for the next step.`;
       setNotice({ tone: deliveryStatus === "failed" || deliveryStatus === "limit_reached" ? "error" : "success", text: message });
       setName(""); setEmail(""); onSuccess?.({ deliveryStatus });
-    } catch (error) { setNotice({ tone: "error", text: error instanceof Error ? error.message : "Could not save your request. Please try again." }); }
+    } catch (error) { onRequestFailed?.(); setNotice({ tone: "error", text: error instanceof Error ? error.message : "Could not save your request. Please try again." }); }
   };
   return <form className={`capture-form ${compact ? "compact" : ""}`} onSubmit={submit} noValidate data-source={source}>
     <div className="form-fields"><Field label="Name"><input value={name} onChange={(event) => setName(event.target.value)} placeholder="Your name" aria-invalid={Boolean(errors.name)} />{errors.name ? <small className="field-error">{errors.name}</small> : null}</Field><Field label="Email"><input value={email} onChange={(event) => setEmail(event.target.value)} placeholder="you@email.com" type="email" aria-invalid={Boolean(errors.email)} />{errors.email ? <small className="field-error">{errors.email}</small> : null}</Field></div>
+    {planNames.length ? <label className="weekly-challenge-consent"><input type="checkbox" checked={weeklyChallengeOptIn} onChange={(event) => setWeeklyChallengeOptIn(event.target.checked)} /><span><strong>Yes, send me Sunday weekly challenges.</strong><small>Useful training and food challenges at 6:00 PM in your local time zone. Unsubscribe anytime.</small></span></label> : null}
     <button className="black-button form-button" type="submit" disabled={mutation.isPending || cartMutation.isPending}>{mutation.isPending || cartMutation.isPending ? "Sending…" : planNames.length ? "Request my PDFs" : "Send me the plan"}<ArrowRight size={16} /></button>
     <Notice notice={notice} /><p className="form-privacy">No spam. Unsubscribe anytime.</p>
   </form>;
@@ -176,6 +182,8 @@ export function EmailPopup() {
   const [submitted, setSubmitted] = useState(false);
   const [requestedPlans, setRequestedPlans] = useState<string[]>([]);
   const [deliveryStatus, setDeliveryStatus] = useState<DeliveryResult["deliveryStatus"]>();
+  const [preparing, setPreparing] = useState(false);
+  const [formError, setFormError] = useState("");
   const hasShown = useRef(false);
   const successMessage = useRef<HTMLDivElement>(null);
   useEffect(() => {
@@ -191,9 +199,9 @@ export function EmailPopup() {
     window.addEventListener("scroll", handleScroll, { passive: true });
     return () => { window.clearTimeout(timer); window.removeEventListener("scroll", handleScroll); };
   }, []);
-  useEffect(() => { const openCartRequest = (event: Event) => { setRequestedPlans((event as CustomEvent<string[]>).detail ?? []); setDeliveryStatus(undefined); setSubmitted(false); setOpen(true); }; window.addEventListener("bwc-open-email-popup", openCartRequest); return () => window.removeEventListener("bwc-open-email-popup", openCartRequest); }, []);
+  useEffect(() => { const openCartRequest = (event: Event) => { setRequestedPlans((event as CustomEvent<string[]>).detail ?? []); setDeliveryStatus(undefined); setPreparing(false); setFormError(""); setSubmitted(false); setOpen(true); }; window.addEventListener("bwc-open-email-popup", openCartRequest); return () => window.removeEventListener("bwc-open-email-popup", openCartRequest); }, []);
   useEffect(() => { if (submitted) successMessage.current?.focus(); }, [submitted]);
-  const close = () => { sessionStorage.setItem("bwc-plan-popup-dismissed", "true"); setOpen(false); setRequestedPlans([]); };
+  const close = () => { sessionStorage.setItem("bwc-plan-popup-dismissed", "true"); setOpen(false); setRequestedPlans([]); setPreparing(false); setFormError(""); };
   if (!open) return null;
   const cartRequest = requestedPlans.length > 0;
   const cartSuccess = deliveryStatus === "sent"
@@ -202,8 +210,8 @@ export function EmailPopup() {
       ? "Your request is saved. 📬 Today’s free email limit is full, so the PDFs are not sent yet."
     : deliveryStatus === "failed"
       ? "Your request is saved. 🛠️ The email machine had a wobble, so we will review it before sending."
-      : "Your request was saved and is being sent to your inbox.";
-  return <div className="popup-scrim" role="dialog" aria-modal="true" aria-label={submitted ? "Thank you for subscribing" : cartRequest ? "Request your PDF plans" : "Free 7-Day Fat Loss Starter"}><div className={`popup-card ${submitted ? "success-state" : ""}`}><button className="popup-close" type="button" onClick={close} aria-label="Close popup"><X size={20} /></button>{submitted ? <div className="popup-success" ref={successMessage} tabIndex={-1} role="status"><span className="popup-success-mark"><CheckCircle2 size={38} /></span><p className="eyebrow">REQUEST RECEIVED</p><h2>Thank you.</h2><p>{cartRequest ? cartSuccess : "Your free starter is on its way. Watch your inbox for the first useful step, then check back for the weekly challenges that keep you building."}</p>{cartRequest && deliveryStatus === "limit_reached" ? <p className="delivery-delay-note">Sorry for the delay 😅 The free email plan hit today’s ceiling. Your request is safe—we’ll follow up with your PDFs.</p> : null}{cartRequest && deliveryStatus === "failed" ? <p className="delivery-delay-note">Sorry for the delay 🛠️ The email machine had a wobble. Your request is safe, and we’ll review the reason before sending.</p> : null}<button className="black-button" type="button" onClick={close}>Back to the work <ArrowRight size={16} /></button></div> : <><div className="popup-stamp">{cartRequest ? requestedPlans.length : "7"}</div><p className="eyebrow">{cartRequest ? "PDF DELIVERY" : "FREE STARTER"}</p><h2>{cartRequest ? "Good choice.\nWe’ll send the PDFs." : <>Stop guessing.<br />Start following a plan.</>}</h2><p>{cartRequest ? "Enter your name and email. We will send only the PDFs you selected to this inbox." : "Get the free 7-Day Fat Loss Starter for men who want real results — no extreme diets, no BS."}</p>{cartRequest ? <ul>{requestedPlans.map((plan) => <li key={plan}><Check size={15} />{plan}</li>)}</ul> : <><p className="popup-weekly">Subscribe for weekly challenges, practical coaching, and a clear reason to keep building week by week.</p><ul><li><Check size={15} />7 days of simple workouts</li><li><Check size={15} />Clear calorie and protein targets</li><li><Check size={15} />A weekly challenge to keep you building</li></ul></>}<FreePlanForm compact source={cartRequest ? "cart_purchase" : "popup"} planNames={requestedPlans} onSuccess={(result) => { setDeliveryStatus(result?.deliveryStatus); setSubmitted(true); }} /><button className="text-button" type="button" onClick={close}>No thanks, I’ll keep guessing.</button></>}</div></div>;
+      : "Your secure access email is on its way.";
+  return <div className="popup-scrim" role="dialog" aria-modal="true" aria-label={submitted ? "Thank you for subscribing" : cartRequest ? "Request your PDF plans" : "Free 7-Day Fat Loss Starter"}><div className={`popup-card ${submitted || preparing ? "success-state" : ""}`}><button className="popup-close" type="button" onClick={close} aria-label="Close popup"><X size={20} /></button>{preparing ? <div className="popup-success" role="status" aria-live="polite"><span className="popup-success-mark"><Sparkles size={38} /></span><p className="eyebrow">PREPARING YOUR ACCESS</p><h2>Good choice.</h2><p>We’re securely saving your selected programs and sending your My Programs access code now.</p><p className="delivery-delay-note">Keep this page open for a moment. No blank waiting screen, no lost request.</p></div> : submitted ? <div className="popup-success" ref={successMessage} tabIndex={-1} role="status"><span className="popup-success-mark"><CheckCircle2 size={38} /></span><p className="eyebrow">REQUEST RECEIVED</p><h2>Thank you.</h2><p>{cartRequest ? cartSuccess : "Your free starter access code is on its way. Use it on My Programs whenever you want to open the full plan."}</p>{cartRequest && deliveryStatus === "limit_reached" ? <p className="delivery-delay-note">Sorry for the delay 😅 The free email plan hit today’s ceiling. Your request is safe—we’ll follow up with your PDFs.</p> : null}{cartRequest && deliveryStatus === "failed" ? <p className="delivery-delay-note">Sorry for the delay 🛠️ The email machine had a wobble. Your request is safe, and we’ll review the reason before sending.</p> : null}<button className="black-button" type="button" onClick={close}>Back to the work <ArrowRight size={16} /></button></div> : <><div className="popup-stamp">{cartRequest ? requestedPlans.length : "7"}</div><p className="eyebrow">{cartRequest ? "PDF DELIVERY" : "FREE STARTER"}</p><h2>{cartRequest ? "Good choice.\nYour programs stay ready." : <>Stop guessing.<br />Start following a plan.</>}</h2><p>{cartRequest ? "Enter your name and email. We will securely save only the PDFs you selected in your My Programs library." : "Get the free 7-Day Fat Loss Starter for men who want real results — no extreme diets, no BS."}</p>{cartRequest ? <ul>{requestedPlans.map((plan) => <li key={plan}><Check size={15} />{plan}</li>)}</ul> : <><p className="popup-weekly">Subscribe for weekly challenges, practical coaching, and a clear reason to keep building week by week.</p><ul><li><Check size={15} />7 days of simple workouts</li><li><Check size={15} />Clear calorie and protein targets</li><li><Check size={15} />A weekly challenge to keep you building</li></ul></>}{formError ? <p className="form-notice error">{formError}</p> : null}<FreePlanForm compact source={cartRequest ? "cart_purchase" : "popup"} planNames={requestedPlans} onRequestStarted={() => { setFormError(""); setPreparing(true); }} onRequestFailed={() => { setPreparing(false); setFormError("Could not save your request. Please try again."); }} onSuccess={(result) => { setPreparing(false); setDeliveryStatus(result?.deliveryStatus); setSubmitted(true); }} /><button className="text-button" type="button" onClick={close}>No thanks, I’ll keep guessing.</button></>}</div></div>;
 }
 
 export function Marquee({ text = "BUILD STRONGER HABITS" }: { text?: string }) { return <div className="marquee" aria-label={text}><div>{Array.from({ length: 8 }, (_, index) => <span key={index}>{text} <b>✦</b></span>)}</div></div>; }

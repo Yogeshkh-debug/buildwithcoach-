@@ -52,6 +52,21 @@ export function buildMailjetPdfMessage(input: {
   };
 }
 
+export function buildBuyerAccessCodeMessage(input: {
+  recipientName: string;
+  code: string;
+  programNames: string[];
+}) {
+  const firstName = escapeHtml(input.recipientName.trim().split(/\s+/)[0] || "there");
+  const programList = input.programNames.map(escapeHtml).join(" · ");
+  const code = escapeHtml(input.code);
+  return {
+    subject: "Your Build With Coach access code",
+    html: `<!doctype html><html><body style="margin:0;background:#f6f5f1;color:#0c0e0c;font-family:Arial,sans-serif"><main style="max-width:620px;margin:0 auto;padding:32px"><p style="font-size:12px;letter-spacing:1.8px;font-weight:700">BUILD WITH COACH</p><h1 style="font-size:32px;line-height:1.05;margin:24px 0 16px">Your programs are ready.</h1><p>Good choice, ${firstName}. Open <strong>My Programs</strong> on Build With Coach and enter this one-time code:</p><p style="font-size:32px;letter-spacing:7px;font-weight:800;border:2px solid #0c0e0c;padding:18px;text-align:center">${code}</p><p>This code expires in 15 minutes. Your program access does not expire—you can request a new code anytime with this email.</p><p style="margin-top:24px"><strong>Your library:</strong> ${programList}</p><hr style="border:0;border-top:1px solid #a9b8ba;margin:28px 0" /><p style="font-size:12px;color:#4e5555">For your privacy, this email contains an access code rather than a permanent public PDF link.</p></main></body></html>`,
+    text: `Build With Coach\n\nYour programs are ready, ${firstName}.\n\nOpen My Programs on Build With Coach and enter this one-time code: ${input.code}\n\nThe code expires in 15 minutes. You can request a new code anytime with this email.\n\nYour library: ${input.programNames.join(", ")}`,
+  };
+}
+
 type DeliveryMessage = ReturnType<typeof buildMailjetPdfMessage>;
 
 type MailjetAttempt =
@@ -189,4 +204,65 @@ export async function sendMailjetPdfDelivery(input: MailjetDeliveryInput): Promi
   } catch (error) {
     return { status: "failed", errorMessage: error instanceof Error ? error.message : "Selected PDFs could not be sent." };
   }
+}
+
+export async function sendBuyerAccessCodeEmail(input: {
+  requestId: number;
+  recipientName: string;
+  recipientEmail: string;
+  code: string;
+  programNames: string[];
+}) {
+  const message = buildBuyerAccessCodeMessage(input);
+  const mailjetResult = await sendMailjetMessage({
+    requestId: input.requestId,
+    recipientName: input.recipientName,
+    recipientEmail: input.recipientEmail,
+    message,
+  });
+  if (mailjetResult.status !== "failed" || !mailjetResult.fallbackEligible) return mailjetResult;
+  return sendResendMessage({
+    requestId: input.requestId,
+    recipientEmail: input.recipientEmail,
+    message,
+  });
+}
+
+export function buildWeeklyChallengeMessage(input: {
+  recipientName: string;
+  challenge: { title: string; intro: string; tasks: string[]; coachNote: string };
+  libraryUrl: string;
+}) {
+  const firstName = escapeHtml(input.recipientName.trim().split(/\s+/)[0] || "Builder");
+  const title = escapeHtml(input.challenge.title);
+  const intro = escapeHtml(input.challenge.intro);
+  const coachNote = escapeHtml(input.challenge.coachNote);
+  const libraryUrl = escapeHtml(input.libraryUrl);
+  const taskList = input.challenge.tasks.map((task) => `<li style="margin:0 0 11px">${escapeHtml(task)}</li>`).join("");
+  return {
+    subject: `Sunday challenge: ${input.challenge.title}`,
+    html: `<!doctype html><html><body style="margin:0;background:#f6f5f1;color:#0c0e0c;font-family:Arial,sans-serif"><main style="max-width:620px;margin:0 auto;padding:32px"><p style="font-size:12px;letter-spacing:1.8px;font-weight:700">BUILD WITH COACH / SUNDAY CHALLENGE</p><h1 style="font-size:32px;line-height:1.05;margin:24px 0 16px">${title}</h1><p>Good week to build, ${firstName}. ${intro}</p><ol style="padding-left:22px;line-height:1.5">${taskList}</ol><p style="margin-top:26px;padding:15px;border-left:4px solid #0c0e0c;background:#d4f747"><strong>Coach note:</strong> ${coachNote}</p><p style="margin-top:28px"><a href="${libraryUrl}" style="color:#0c0e0c;font-weight:700">Open My Programs</a> to return to your PDFs whenever you need them.</p><hr style="border:0;border-top:1px solid #a9b8ba;margin:28px 0" /><p style="font-size:12px;color:#4e5555">You are receiving this because you chose weekly challenges with your Build With Coach program request.</p></main></body></html>`,
+    text: `Build With Coach — Sunday Challenge\n\n${input.challenge.title}\n\n${input.challenge.intro}\n\n${input.challenge.tasks.map((task, index) => `${index + 1}. ${task}`).join("\n")}\n\nCoach note: ${input.challenge.coachNote}\n\nOpen My Programs: ${input.libraryUrl}`,
+  };
+}
+
+export async function sendWeeklyChallengeEmail(input: {
+  requestId: number;
+  recipientName: string;
+  recipientEmail: string;
+  challenge: { title: string; intro: string; tasks: string[]; coachNote: string };
+  libraryUrl: string;
+}): Promise<{ status: "sent"; providerMessageId: string } | { status: "failed"; errorMessage: string }> {
+  const message = buildWeeklyChallengeMessage(input);
+  const mailjetResult = await sendMailjetMessage({
+    requestId: input.requestId,
+    recipientName: input.recipientName,
+    recipientEmail: input.recipientEmail,
+    message,
+  });
+  if (mailjetResult.status === "sent") return mailjetResult;
+  if (mailjetResult.status === "failed" && mailjetResult.fallbackEligible) {
+    return sendResendMessage({ requestId: input.requestId, recipientEmail: input.recipientEmail, message });
+  }
+  return { status: "failed", errorMessage: "errorMessage" in mailjetResult ? mailjetResult.errorMessage : "Weekly challenge delivery could not be confirmed." };
 }

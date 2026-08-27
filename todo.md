@@ -249,9 +249,12 @@
 - [x] Add Resend as a backup only for genuine Mailjet technical failures, while keeping Mailjet daily-limit and account-limit outcomes out of the fallback path.
 - [x] Verify primary Mailjet delivery, eligible Resend backup delivery, and daily-limit non-fallback behavior without exposing either provider credential.
 
-- [ ] Show immediate, clear checkout feedback while selected PDF delivery is being prepared, without claiming the email is sent before provider confirmation.
-- [ ] Implement a secure durable-access model for only the buyer’s selected program PDFs, subject to provider attachment-size and account-access constraints.
-- [ ] Add explicit weekly-challenge consent and ensure non-opted-in cart buyers do not receive marketing email.
-- [ ] Add a varied, safety-reviewed weekly challenge library with a no-immediate-repeat rule.
+- [x] Show immediate, clear checkout feedback while selected PDF delivery is being prepared, without claiming the email is sent before provider confirmation.
+- [x] Implement a secure durable-access model for only the buyer’s selected program PDFs, subject to provider attachment-size and account-access constraints.
+- [x] Add explicit weekly-challenge consent and ensure non-opted-in cart buyers do not receive marketing email.
+- [x] Add a varied, safety-reviewed weekly challenge library with a no-immediate-repeat rule.
 - [ ] Configure the owner-controlled Sunday weekly-challenge delivery job after the exact send time and published-site requirement are confirmed.
-- [ ] Accept and validate the owner’s supplied Build With Coach 7-Day Fat Loss Starter PDF before activating freebie delivery.
+- [x] Accept and validate the owner’s supplied Build With Coach 7-Day Fat Loss Starter PDF before activating freebie delivery.
+
+- [x] Build the confirmed in-site private My Programs page where buyers use their email identity to view only the programs assigned to them and can return anytime.
+- [ ] Send varied Sunday weekly challenges at 6:00 PM in each opted-in PDF buyer’s saved local time zone.

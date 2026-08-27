@@ -27,6 +27,12 @@ const planDeliveryCatalog: readonly PlanDeliveryItem[] = [
   },
 ] as const;
 
+export const freeStarterDeliveryItem = {
+  title: "7-Day Fat Loss Starter",
+  storageKey: "Build-With-Coach-7-Day-Fat-Loss-Starter_3545bdae.pdf",
+  fileName: "Build-With-Coach-7-Day-Fat-Loss-Starter.pdf",
+} as const;
+
 export function resolvePlanDeliveryItems(planNames: string[]): PlanDeliveryItem[] {
   const requested = new Set(planNames);
   const resolved = planDeliveryCatalog.filter((plan) => requested.has(plan.title));

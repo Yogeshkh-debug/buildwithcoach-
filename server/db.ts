@@ -1,7 +1,9 @@
-import { desc, eq } from "drizzle-orm";
+import { and, desc, eq, isNull } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
+import { createHash, randomInt } from "node:crypto";
 import {
   articles,
+  buyerAccessCodes,
   contactMessages,
   downloads,
   emailSubscribers,
@@ -12,12 +14,14 @@ import {
   pdfDeliveryRequests,
   storySubmissions,
   users,
+  weeklyChallengeDeliveries,
+  weeklyChallengeSchedules,
 } from "../drizzle/schema";
 import { articleSeeds, serializeArticleBody } from "./articleSeed";
 import { ENV } from "./_core/env";
 import { storagePut } from "./storage";
 import { assertSafeStoryImage } from "./security";
-import { resolvePlanDeliveryItems } from "./planDelivery";
+import { freeStarterDeliveryItem, resolvePlanDeliveryItems } from "./planDelivery";
 
 let _db: ReturnType<typeof drizzle> | null = null;
 let articleSeedPromise: Promise<void> | null = null;
@@ -131,15 +135,17 @@ export async function addNewsletterSubscriber(input: { name?: string; email: str
 
 export async function addFreePlanSignup(input: { name: string; email: string }) {
   const db = await getDb();
-  if (!db) return { success: true, persisted: false };
-  await db.insert(freePlanSignups).values({ name: input.name, email: input.email, planName: "7-Day Fat Loss Starter", status: "requested" });
+  if (!db) return { success: true, persisted: false, freePlanSignupId: null };
+  const result = await db.insert(freePlanSignups).values({ name: input.name, email: input.email, planName: "7-Day Fat Loss Starter", status: "requested" });
   await db.insert(downloads).values({ email: input.email, resourceName: "7-Day Fat Loss Starter", status: "pending_delivery" });
   await addNewsletterSubscriber({ name: input.name, email: input.email, source: "free_plan" });
-  return { success: true, persisted: true };
+  return { success: true, persisted: true, freePlanSignupId: Number(result[0].insertId) };
 }
 
-export async function addCartRequest(input: { name: string; email: string; planNames: string[] }) {
+export async function addCartRequest(input: { name: string; email: string; planNames: string[]; weeklyChallengeOptIn?: boolean; timeZone?: string }) {
   const deliveryItems = resolvePlanDeliveryItems(input.planNames);
+  const weeklyChallengeOptIn = input.weeklyChallengeOptIn === true;
+  const timeZone = input.timeZone ?? "UTC";
   const db = await getDb();
   if (!db) {
     return {
@@ -174,7 +180,24 @@ export async function addCartRequest(input: { name: string; email: string; planN
     return requestId;
   });
 
-  await addNewsletterSubscriber({ name: input.name, email: input.email, source: "cart_pdf_request" });
+  await db.insert(emailSubscribers).values({
+    name: input.name,
+    email: input.email,
+    consent: weeklyChallengeOptIn ? 1 : 0,
+    source: "cart_pdf_request",
+    isPdfBuyer: 1,
+    weeklyChallengeOptIn: weeklyChallengeOptIn ? 1 : 0,
+    timeZone,
+  }).onDuplicateKeyUpdate({
+    set: {
+      name: input.name,
+      source: "cart_pdf_request",
+      isPdfBuyer: 1,
+      weeklyChallengeOptIn: weeklyChallengeOptIn ? 1 : 0,
+      consent: weeklyChallengeOptIn ? 1 : 0,
+      timeZone,
+    },
+  });
   return {
     success: true,
     persisted: true,
@@ -182,6 +205,196 @@ export async function addCartRequest(input: { name: string; email: string; planN
     deliveryRequestId,
     planNames: deliveryItems.map((item) => item.title),
   };
+}
+
+function normalizeBuyerEmail(email: string) {
+  return email.trim().toLowerCase();
+}
+
+function hashBuyerAccessCode(email: string, code: string) {
+  return createHash("sha256").update(`${normalizeBuyerEmail(email)}:${code}:${ENV.cookieSecret}`).digest("hex");
+}
+
+export async function createBuyerAccessCode(email: string) {
+  const db = await getDb();
+  if (!db) return null;
+  const normalizedEmail = normalizeBuyerEmail(email);
+  const code = String(randomInt(100_000, 1_000_000));
+  const expiresAt = new Date(Date.now() + 15 * 60 * 1000);
+  await db.insert(buyerAccessCodes).values({
+    email: normalizedEmail,
+    codeHash: hashBuyerAccessCode(normalizedEmail, code),
+    expiresAt,
+  });
+  return { code, expiresAt };
+}
+
+export async function redeemBuyerAccessCode(input: { email: string; code: string }) {
+  const db = await getDb();
+  if (!db) return false;
+  const normalizedEmail = normalizeBuyerEmail(input.email);
+  const records = await db.select().from(buyerAccessCodes)
+    .where(eq(buyerAccessCodes.email, normalizedEmail))
+    .orderBy(desc(buyerAccessCodes.createdAt))
+    .limit(1);
+  const record = records[0];
+  if (!record || record.usedAt || record.expiresAt.getTime() < Date.now() || record.attempts >= 5) return false;
+  if (record.codeHash !== hashBuyerAccessCode(normalizedEmail, input.code)) {
+    await db.update(buyerAccessCodes).set({ attempts: record.attempts + 1 }).where(eq(buyerAccessCodes.id, record.id));
+    return false;
+  }
+  const updated = await db.update(buyerAccessCodes).set({ usedAt: new Date() })
+    .where(and(eq(buyerAccessCodes.id, record.id), isNull(buyerAccessCodes.usedAt)));
+  return Number(updated[0].affectedRows) === 1;
+}
+
+export type BuyerProgram = {
+  title: string;
+  fileName: string;
+  storageKey: string;
+  type: "starter" | "program";
+};
+
+export async function listBuyerPrograms(email: string): Promise<BuyerProgram[]> {
+  const db = await getDb();
+  if (!db) return [];
+  const normalizedEmail = normalizeBuyerEmail(email);
+  const [requests, starterSignups] = await Promise.all([
+    db.select({ id: pdfDeliveryRequests.id }).from(pdfDeliveryRequests).where(eq(pdfDeliveryRequests.email, normalizedEmail)),
+    db.select({ id: freePlanSignups.id }).from(freePlanSignups).where(eq(freePlanSignups.email, normalizedEmail)).limit(1),
+  ]);
+  const requestIds = new Set(requests.map((request) => request.id));
+  const items = requestIds.size ? await db.select().from(pdfDeliveryItems) : [];
+  const programs: BuyerProgram[] = items
+    .filter((item) => requestIds.has(item.requestId))
+    .map((item) => ({
+      title: item.planName,
+      fileName: `${item.planName.replaceAll(/[^a-z0-9]+/gi, "-").replace(/^-|-$/g, "")}.pdf`,
+      storageKey: item.storageKey,
+      type: "program" as const,
+    }));
+  if (starterSignups.length) programs.unshift({ ...freeStarterDeliveryItem, type: "starter" });
+  return Array.from(new Map(programs.map((program) => [program.title, program])).values());
+}
+
+export async function getBuyerProgram(email: string, title: string): Promise<BuyerProgram | null> {
+  const programs = await listBuyerPrograms(email);
+  return programs.find((program) => program.title === title) ?? null;
+}
+
+export type WeeklyChallengeRecipient = {
+  id: number;
+  name: string | null;
+  email: string;
+  timeZone: string;
+};
+
+export async function listWeeklyChallengeRecipients(): Promise<WeeklyChallengeRecipient[]> {
+  const db = await getDb();
+  if (!db) return [];
+  return db.select({
+    id: emailSubscribers.id,
+    name: emailSubscribers.name,
+    email: emailSubscribers.email,
+    timeZone: emailSubscribers.timeZone,
+  }).from(emailSubscribers).where(and(
+    eq(emailSubscribers.isPdfBuyer, 1),
+    eq(emailSubscribers.weeklyChallengeOptIn, 1),
+    eq(emailSubscribers.consent, 1),
+    isNull(emailSubscribers.unsubscribedAt),
+  ));
+}
+
+export async function claimWeeklyChallengeDelivery(input: { subscriberId: number; weekKey: string; challengeKey: string }) {
+  const db = await getDb();
+  if (!db) return null;
+  try {
+    const result = await db.insert(weeklyChallengeDeliveries).values({
+      subscriberId: input.subscriberId,
+      weekKey: input.weekKey,
+      challengeKey: input.challengeKey,
+      status: "pending",
+    });
+    return Number(result[0].insertId);
+  } catch {
+    // The (subscriber, week) unique constraint makes repeated cron runs idempotent.
+    return null;
+  }
+}
+
+export async function markWeeklyChallengeSent(input: { deliveryId: number; subscriberId: number; weekKey: string; providerMessageId: string }) {
+  const db = await getDb();
+  if (!db) return false;
+  await db.update(weeklyChallengeDeliveries).set({
+    status: "sent",
+    providerMessageId: input.providerMessageId,
+    errorMessage: null,
+    sentAt: new Date(),
+  }).where(eq(weeklyChallengeDeliveries.id, input.deliveryId));
+  await db.update(emailSubscribers).set({ lastWeeklyChallengeWeek: input.weekKey }).where(eq(emailSubscribers.id, input.subscriberId));
+  return true;
+}
+
+export async function markWeeklyChallengeFailed(deliveryId: number, errorMessage: string) {
+  const db = await getDb();
+  if (!db) return false;
+  await db.update(weeklyChallengeDeliveries).set({
+    status: "failed",
+    errorMessage: errorMessage.slice(0, 4_000),
+  }).where(eq(weeklyChallengeDeliveries.id, deliveryId));
+  return true;
+}
+
+export async function isWeeklyChallengeScheduleActive(taskUid: string) {
+  const db = await getDb();
+  if (!db) return false;
+  const records = await db.select({ id: weeklyChallengeSchedules.id }).from(weeklyChallengeSchedules)
+    .where(and(eq(weeklyChallengeSchedules.scheduleCronTaskUid, taskUid), eq(weeklyChallengeSchedules.enabled, 1)))
+    .limit(1);
+  return Boolean(records[0]);
+}
+
+export async function getBuyerChallengePreferences(email: string) {
+  const db = await getDb();
+  if (!db) return { weeklyChallengeOptIn: false, timeZone: "UTC" };
+  const records = await db.select({
+    weeklyChallengeOptIn: emailSubscribers.weeklyChallengeOptIn,
+    timeZone: emailSubscribers.timeZone,
+  }).from(emailSubscribers).where(and(
+    eq(emailSubscribers.email, normalizeBuyerEmail(email)),
+    eq(emailSubscribers.isPdfBuyer, 1),
+  )).limit(1);
+  const record = records[0];
+  return { weeklyChallengeOptIn: record?.weeklyChallengeOptIn === 1, timeZone: record?.timeZone ?? "UTC" };
+}
+
+export async function updateBuyerChallengePreferences(input: { email: string; weeklyChallengeOptIn: boolean; timeZone: string }) {
+  const db = await getDb();
+  if (!db) return false;
+  await db.update(emailSubscribers).set({
+    weeklyChallengeOptIn: input.weeklyChallengeOptIn ? 1 : 0,
+    consent: input.weeklyChallengeOptIn ? 1 : 0,
+    timeZone: input.timeZone,
+    unsubscribedAt: input.weeklyChallengeOptIn ? null : new Date(),
+  }).where(and(eq(emailSubscribers.email, normalizeBuyerEmail(input.email)), eq(emailSubscribers.isPdfBuyer, 1)));
+  return true;
+}
+
+export async function getActiveWeeklyChallengeSchedule() {
+  const db = await getDb();
+  if (!db) return null;
+  const records = await db.select().from(weeklyChallengeSchedules)
+    .where(eq(weeklyChallengeSchedules.enabled, 1))
+    .orderBy(desc(weeklyChallengeSchedules.updatedAt))
+    .limit(1);
+  return records[0] ?? null;
+}
+
+export async function saveWeeklyChallengeSchedule(taskUid: string) {
+  const db = await getDb();
+  if (!db) throw new Error("Database is not available for weekly challenge scheduling.");
+  await db.insert(weeklyChallengeSchedules).values({ scheduleCronTaskUid: taskUid, enabled: 1 })
+    .onDuplicateKeyUpdate({ set: { enabled: 1 } });
 }
 
 export async function getPdfDeliveryPayload(requestId: number) {

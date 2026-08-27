@@ -7,7 +7,7 @@ import { ThemeProvider } from "./contexts/ThemeContext";
 import { CartProvider } from "./contexts/CartContext";
 import { CartAddedToast, EmailPopup } from "./components/SiteComponents";
 import Home from "./pages/Home";
-import { AboutPage, ArticleDetailPage, ArticlesPage, CartPage, ContactPage, DashboardPage, DeliveryAdminPage, FreePlanPage, LoginPage, ToolsPage } from "./pages/ContentPages";
+import { AboutPage, ArticleDetailPage, ArticlesPage, CartPage, ContactPage, DashboardPage, DeliveryAdminPage, FreePlanPage, LoginPage, MyProgramsPage, ToolsPage } from "./pages/ContentPages";
 
 function LoginRoute() {
   return <LoginPage />;
@@ -31,6 +31,7 @@ function Router() {
       <Route path={"/contact"} component={ContactPage} />
       <Route path={"/login"} component={LoginRoute} />
       <Route path={"/signup"} component={SignupRoute} />
+      <Route path={"/my-programs"} component={MyProgramsPage} />
       <Route path={"/dashboard"} component={DashboardPage} />
       <Route path={"/owner/deliveries"} component={DeliveryAdminPage} />
       <Route path={"/404"} component={NotFound} />

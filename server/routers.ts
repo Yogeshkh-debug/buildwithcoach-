@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { parse as parseCookie } from "cookie";
 import { COOKIE_NAME } from "@shared/const";
 import { getSessionCookieOptions } from "./_core/cookies";
 import { systemRouter } from "./_core/systemRouter";
@@ -11,6 +12,11 @@ import {
   addStorySubmission,
   addWaitlistRequest,
   getPdfDeliveryPayload,
+  createBuyerAccessCode,
+  getBuyerProgram,
+  getBuyerChallengePreferences,
+  getActiveWeeklyChallengeSchedule,
+  listBuyerPrograms,
   listOwnerDeliveryRecords,
   getPublishedArticle,
   listFutureProducts,
@@ -18,12 +24,25 @@ import {
   markPdfDeliveryFailed,
   markPdfDeliverySent,
   ownerDeliveryRecordsToCsv,
+  redeemBuyerAccessCode,
+  saveWeeklyChallengeSchedule,
+  updateBuyerChallengePreferences,
 } from "./db";
-import { sendMailjetPdfDelivery } from "./mailjetDelivery";
+import { sendBuyerAccessCodeEmail } from "./mailjetDelivery";
+import { createBuyerSession, verifyBuyerSession } from "./buyerSession";
+import { storageGetSignedUrl } from "./storage";
+import { createHeartbeatJob } from "./_core/heartbeat";
 
 const emailSchema = z.string().trim().email("Enter a valid email address.").max(320);
 const nameSchema = z.string().trim().min(2, "Enter at least 2 characters.").max(160);
 const storyPhotoNameSchema = z.string().trim().min(1).max(120).regex(/^[A-Za-z0-9][A-Za-z0-9._-]*\.(?:jpg|jpeg|png|webp)$/i, "Use a simple JPG, PNG, or WebP filename.");
+const timeZoneSchema = z.string().trim().min(1).max(64).regex(/^[A-Za-z_]+(?:\/[A-Za-z_+-]+)+$/, "Choose a valid time zone.");
+const BUYER_SESSION_COOKIE = "bwc_buyer_session";
+
+async function getBuyerEmailFromRequest(cookieHeader: string | undefined) {
+  const token = parseCookie(cookieHeader ?? "")[BUYER_SESSION_COOKIE];
+  return token ? verifyBuyerSession(token) : null;
+}
 
 export const appRouter = router({
   system: systemRouter,
@@ -56,38 +75,123 @@ export const appRouter = router({
       if (!payload) return { status: "failed" as const, message: "This saved delivery request was not found." };
       if (payload.request.status === "sent") return { status: "already_sent" as const, message: "This request has already been sent." };
 
-      const result = await sendMailjetPdfDelivery({
+      const accessCode = await createBuyerAccessCode(payload.request.email);
+      if (!accessCode) return { status: "failed" as const, message: "Could not prepare a secure program access code." };
+      const result = await sendBuyerAccessCodeEmail({
         requestId: input.requestId,
         recipientName: payload.request.name,
         recipientEmail: payload.request.email,
-        plans: payload.items.map((item) => ({ title: item.planName, storageKey: item.storageKey })),
+        code: accessCode.code,
+        programNames: payload.items.map((item) => item.planName),
       });
       if (result.status === "sent") {
         await markPdfDeliverySent(input.requestId, result.providerMessageId);
-        return { status: "sent" as const, message: "Selected PDFs sent successfully." };
+        return { status: "sent" as const, message: "Secure My Programs access code sent successfully." };
       }
       if (result.status === "limit_reached" || result.status === "failed") {
         await markPdfDeliveryFailed(input.requestId, result.errorMessage);
         return { status: result.status, message: result.errorMessage };
       }
-      return { status: "failed" as const, message: "Mailjet returned an unexpected validation state." };
+      return { status: "failed" as const, message: "The email provider returned an unexpected access-code state." };
+    }),
+  }),
+  buyerAccess: router({
+    requestCode: publicCaptureProcedure.input(z.object({ email: emailSchema })).mutation(async ({ input }) => {
+      const programs = await listBuyerPrograms(input.email);
+      const accessCode = await createBuyerAccessCode(input.email);
+      if (!accessCode) return { status: "failed" as const };
+      const result = await sendBuyerAccessCodeEmail({
+        requestId: Date.now(),
+        recipientName: "Coach",
+        recipientEmail: input.email,
+        code: accessCode.code,
+        programNames: programs.length ? programs.map((program) => program.title) : ["Build With Coach library check"],
+      });
+      return { status: result.status };
+    }),
+    verifyCode: publicCaptureProcedure.input(z.object({ email: emailSchema, code: z.string().trim().regex(/^\d{6}$/, "Enter the 6-digit code.") })).mutation(async ({ input, ctx }) => {
+      const accepted = await redeemBuyerAccessCode(input);
+      if (!accepted) return { status: "invalid" as const };
+      const token = await createBuyerSession(input.email);
+      ctx.res.cookie(BUYER_SESSION_COOKIE, token, { ...getSessionCookieOptions(ctx.req), maxAge: 30 * 24 * 60 * 60 * 1000 });
+      return { status: "verified" as const };
+    }),
+    programs: publicProcedure.query(async ({ ctx }) => {
+      const email = await getBuyerEmailFromRequest(ctx.req.headers.cookie);
+      if (!email) return { status: "unauthorized" as const, programs: [] };
+      const [programs, preferences] = await Promise.all([listBuyerPrograms(email), getBuyerChallengePreferences(email)]);
+      return { status: "authorized" as const, programs, preferences };
+    }),
+    openProgram: publicProcedure.input(z.object({ title: z.string().trim().min(2).max(160) })).mutation(async ({ input, ctx }) => {
+      const email = await getBuyerEmailFromRequest(ctx.req.headers.cookie);
+      if (!email) return { status: "unauthorized" as const };
+      const program = await getBuyerProgram(email, input.title);
+      if (!program) return { status: "not_found" as const };
+      return { status: "authorized" as const, url: await storageGetSignedUrl(program.storageKey), fileName: program.fileName };
+    }),
+    logout: publicProcedure.mutation(({ ctx }) => {
+      ctx.res.clearCookie(BUYER_SESSION_COOKIE, { ...getSessionCookieOptions(ctx.req), maxAge: -1 });
+      return { success: true } as const;
+    }),
+    updateChallengePreferences: publicProcedure.input(z.object({ weeklyChallengeOptIn: z.boolean(), timeZone: timeZoneSchema })).mutation(async ({ input, ctx }) => {
+      const email = await getBuyerEmailFromRequest(ctx.req.headers.cookie);
+      if (!email) return { status: "unauthorized" as const };
+      await updateBuyerChallengePreferences({ email, ...input });
+      return { status: "updated" as const };
+    }),
+  }),
+  weeklyChallenge: router({
+    status: adminProcedure.query(async () => ({ schedule: await getActiveWeeklyChallengeSchedule() })),
+    activate: adminProcedure.mutation(async ({ ctx }) => {
+      if (process.env.NODE_ENV !== "production") {
+        return { status: "publish_required" as const };
+      }
+      const existing = await getActiveWeeklyChallengeSchedule();
+      if (existing) return { status: "active" as const, nextStep: "already_active" as const };
+      const cookies = parseCookie(ctx.req.headers.cookie ?? "");
+      const bearer = ctx.req.headers.authorization?.startsWith("Bearer ") ? ctx.req.headers.authorization.slice(7) : "";
+      const task = await createHeartbeatJob({
+        name: "build-with-coach-weekly-challenge-delivery",
+        cron: "0 */15 * * * *",
+        path: "/api/scheduled/weekly-challenge",
+        method: "POST",
+        description: "Checks opted-in PDF buyers every 15 minutes and sends one varied Sunday challenge at 6:00 PM in each buyer's local time zone.",
+      }, cookies[COOKIE_NAME] ?? bearer);
+      await saveWeeklyChallengeSchedule(task.taskUid);
+      return { status: "active" as const, nextStep: "created" as const, nextExecutionAt: task.nextExecutionAt ?? null };
     }),
   }),
   captures: router({
     newsletter: publicCaptureProcedure.input(z.object({ name: z.string().trim().max(160).optional(), email: emailSchema, source: z.string().trim().min(2).max(80) })).mutation(({ input }) => addNewsletterSubscriber(input)),
-    freePlan: publicCaptureProcedure.input(z.object({ name: nameSchema, email: emailSchema })).mutation(({ input }) => addFreePlanSignup(input)),
-    cartRequest: publicCaptureProcedure.input(z.object({ name: nameSchema, email: emailSchema, planNames: z.array(z.string().trim().min(2).max(160)).min(1).max(4) })).mutation(async ({ input }) => {
+    freePlan: publicCaptureProcedure.input(z.object({ name: nameSchema, email: emailSchema })).mutation(async ({ input }) => {
+      const created = await addFreePlanSignup(input);
+      if (!created.freePlanSignupId) return { ...created, deliveryStatus: "failed" as const };
+      const accessCode = await createBuyerAccessCode(input.email);
+      if (!accessCode) return { ...created, deliveryStatus: "failed" as const };
+      const result = await sendBuyerAccessCodeEmail({
+        requestId: created.freePlanSignupId,
+        recipientName: input.name,
+        recipientEmail: input.email,
+        code: accessCode.code,
+        programNames: ["7-Day Fat Loss Starter"],
+      });
+      return { ...created, deliveryStatus: result.status };
+    }),
+    cartRequest: publicCaptureProcedure.input(z.object({ name: nameSchema, email: emailSchema, planNames: z.array(z.string().trim().min(2).max(160)).min(1).max(4), weeklyChallengeOptIn: z.boolean(), timeZone: timeZoneSchema })).mutation(async ({ input }) => {
       const created = await addCartRequest(input);
       if (!created.deliveryRequestId) return created;
 
       const payload = await getPdfDeliveryPayload(created.deliveryRequestId);
       if (!payload) return { ...created, deliveryStatus: "failed" as const };
 
-      const result = await sendMailjetPdfDelivery({
+      const accessCode = await createBuyerAccessCode(input.email);
+      if (!accessCode) return { ...created, deliveryStatus: "failed" as const };
+      const result = await sendBuyerAccessCodeEmail({
         requestId: created.deliveryRequestId,
         recipientName: payload.request.name,
         recipientEmail: payload.request.email,
-        plans: payload.items.map((item) => ({ title: item.planName, storageKey: item.storageKey })),
+        code: accessCode.code,
+        programNames: payload.items.map((item) => item.planName),
       });
       if (result.status === "sent") await markPdfDeliverySent(created.deliveryRequestId, result.providerMessageId);
       if (result.status === "limit_reached") await markPdfDeliveryFailed(created.deliveryRequestId, result.errorMessage);
