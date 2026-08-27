@@ -105,7 +105,9 @@ export function CartAddedToast() {
   return <div className="cart-added-toast" role="status"><span><CheckCircle2 size={19} /></span><div><strong>Added to cart</strong><p>{plan}</p></div><Link href="/cart">Review cart <ArrowRight size={15} /></Link><button type="button" onClick={() => setPlan("")} aria-label="Dismiss cart confirmation"><X size={16} /></button></div>;
 }
 
-export function FreePlanForm({ compact = false, source = "free_plan", onSuccess, planNames = [] }: { compact?: boolean; source?: string; onSuccess?: () => void; planNames?: string[] }) {
+type DeliveryResult = { deliveryStatus?: "sent" | "failed" };
+
+export function FreePlanForm({ compact = false, source = "free_plan", onSuccess, planNames = [] }: { compact?: boolean; source?: string; onSuccess?: (result?: DeliveryResult) => void; planNames?: string[] }) {
   const mutation = trpc.captures.freePlan.useMutation();
   const cartMutation = trpc.captures.cartRequest.useMutation();
   const { notice, setNotice } = useFormToast();
@@ -118,10 +120,21 @@ export function FreePlanForm({ compact = false, source = "free_plan", onSuccess,
     setErrors(nextErrors);
     if (Object.values(nextErrors).some(Boolean)) return;
     try {
-      if (planNames.length) await cartMutation.mutateAsync({ name: name.trim(), email: email.trim(), planNames });
-      else await mutation.mutateAsync({ name: name.trim(), email: email.trim() });
-      setNotice({ tone: "success", text: planNames.length ? `Request received, ${name.trim().split(" ")[0]}. We’ll send your selected PDFs to this inbox.` : `You’re in, ${name.trim().split(" ")[0]}. Check your inbox for the next step.` });
-      setName(""); setEmail(""); onSuccess?.();
+      const result = planNames.length
+        ? await cartMutation.mutateAsync({ name: name.trim(), email: email.trim(), planNames })
+        : await mutation.mutateAsync({ name: name.trim(), email: email.trim() });
+      const candidateStatus = "deliveryStatus" in result ? result.deliveryStatus : undefined;
+      const deliveryStatus: DeliveryResult["deliveryStatus"] = candidateStatus === "sent" || candidateStatus === "failed"
+        ? candidateStatus
+        : undefined;
+      const firstName = name.trim().split(" ")[0];
+      const message = deliveryStatus === "sent"
+        ? `PDFs sent, ${firstName}. Check this inbox now.`
+        : deliveryStatus === "failed"
+          ? `Your request was saved, ${firstName}, but delivery could not be sent yet.`
+          : `You’re in, ${firstName}. Check your inbox for the next step.`;
+      setNotice({ tone: deliveryStatus === "failed" ? "error" : "success", text: message });
+      setName(""); setEmail(""); onSuccess?.({ deliveryStatus });
     } catch (error) { setNotice({ tone: "error", text: error instanceof Error ? error.message : "Could not save your request. Please try again." }); }
   };
   return <form className={`capture-form ${compact ? "compact" : ""}`} onSubmit={submit} noValidate data-source={source}>
@@ -160,6 +173,7 @@ export function EmailPopup() {
   const [open, setOpen] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [requestedPlans, setRequestedPlans] = useState<string[]>([]);
+  const [deliveryStatus, setDeliveryStatus] = useState<DeliveryResult["deliveryStatus"]>();
   const hasShown = useRef(false);
   const successMessage = useRef<HTMLDivElement>(null);
   useEffect(() => {
@@ -175,12 +189,17 @@ export function EmailPopup() {
     window.addEventListener("scroll", handleScroll, { passive: true });
     return () => { window.clearTimeout(timer); window.removeEventListener("scroll", handleScroll); };
   }, []);
-  useEffect(() => { const openCartRequest = (event: Event) => { setRequestedPlans((event as CustomEvent<string[]>).detail ?? []); setSubmitted(false); setOpen(true); }; window.addEventListener("bwc-open-email-popup", openCartRequest); return () => window.removeEventListener("bwc-open-email-popup", openCartRequest); }, []);
+  useEffect(() => { const openCartRequest = (event: Event) => { setRequestedPlans((event as CustomEvent<string[]>).detail ?? []); setDeliveryStatus(undefined); setSubmitted(false); setOpen(true); }; window.addEventListener("bwc-open-email-popup", openCartRequest); return () => window.removeEventListener("bwc-open-email-popup", openCartRequest); }, []);
   useEffect(() => { if (submitted) successMessage.current?.focus(); }, [submitted]);
   const close = () => { sessionStorage.setItem("bwc-plan-popup-dismissed", "true"); setOpen(false); setRequestedPlans([]); };
   if (!open) return null;
   const cartRequest = requestedPlans.length > 0;
-  return <div className="popup-scrim" role="dialog" aria-modal="true" aria-label={submitted ? "Thank you for subscribing" : cartRequest ? "Request your PDF plans" : "Free 7-Day Fat Loss Starter"}><div className={`popup-card ${submitted ? "success-state" : ""}`}><button className="popup-close" type="button" onClick={close} aria-label="Close popup"><X size={20} /></button>{submitted ? <div className="popup-success" ref={successMessage} tabIndex={-1} role="status"><span className="popup-success-mark"><CheckCircle2 size={38} /></span><p className="eyebrow">REQUEST RECEIVED</p><h2>Thank you.</h2><p>{cartRequest ? "Your selected PDF plans are queued. We’ll send them to your inbox soon." : "Your free starter is on its way. Watch your inbox for the first useful step, then check back for the weekly challenges that keep you building."}</p><button className="black-button" type="button" onClick={close}>Back to the work <ArrowRight size={16} /></button></div> : <><div className="popup-stamp">{cartRequest ? requestedPlans.length : "7"}</div><p className="eyebrow">{cartRequest ? "PDF REQUEST" : "FREE STARTER"}</p><h2>{cartRequest ? "Good choice.\nWe’ll send the PDFs." : <>Stop guessing.<br />Start following a plan.</>}</h2><p>{cartRequest ? "Add your name and email. Your selected plans will be queued for direct delivery." : "Get the free 7-Day Fat Loss Starter for men who want real results — no extreme diets, no BS."}</p>{cartRequest ? <ul>{requestedPlans.map((plan) => <li key={plan}><Check size={15} />{plan}</li>)}</ul> : <><p className="popup-weekly">Subscribe for weekly challenges, practical coaching, and a clear reason to keep building week by week.</p><ul><li><Check size={15} />7 days of simple workouts</li><li><Check size={15} />Clear calorie and protein targets</li><li><Check size={15} />A weekly challenge to keep you building</li></ul></>}<FreePlanForm compact source={cartRequest ? "cart_purchase" : "popup"} planNames={requestedPlans} onSuccess={() => setSubmitted(true)} /><button className="text-button" type="button" onClick={close}>No thanks, I’ll keep guessing.</button></>}</div></div>;
+  const cartSuccess = deliveryStatus === "sent"
+    ? "Your selected PDFs were sent to your inbox. Check it now."
+    : deliveryStatus === "failed"
+      ? "Your request was saved, but the email could not be sent yet. We will not pretend it was delivered."
+      : "Your request was saved and is being sent to your inbox.";
+  return <div className="popup-scrim" role="dialog" aria-modal="true" aria-label={submitted ? "Thank you for subscribing" : cartRequest ? "Request your PDF plans" : "Free 7-Day Fat Loss Starter"}><div className={`popup-card ${submitted ? "success-state" : ""}`}><button className="popup-close" type="button" onClick={close} aria-label="Close popup"><X size={20} /></button>{submitted ? <div className="popup-success" ref={successMessage} tabIndex={-1} role="status"><span className="popup-success-mark"><CheckCircle2 size={38} /></span><p className="eyebrow">REQUEST RECEIVED</p><h2>Thank you.</h2><p>{cartRequest ? cartSuccess : "Your free starter is on its way. Watch your inbox for the first useful step, then check back for the weekly challenges that keep you building."}</p><button className="black-button" type="button" onClick={close}>Back to the work <ArrowRight size={16} /></button></div> : <><div className="popup-stamp">{cartRequest ? requestedPlans.length : "7"}</div><p className="eyebrow">{cartRequest ? "PDF DELIVERY" : "FREE STARTER"}</p><h2>{cartRequest ? "Good choice.\nWe’ll send the PDFs." : <>Stop guessing.<br />Start following a plan.</>}</h2><p>{cartRequest ? "Enter your name and email. We will send only the PDFs you selected to this inbox." : "Get the free 7-Day Fat Loss Starter for men who want real results — no extreme diets, no BS."}</p>{cartRequest ? <ul>{requestedPlans.map((plan) => <li key={plan}><Check size={15} />{plan}</li>)}</ul> : <><p className="popup-weekly">Subscribe for weekly challenges, practical coaching, and a clear reason to keep building week by week.</p><ul><li><Check size={15} />7 days of simple workouts</li><li><Check size={15} />Clear calorie and protein targets</li><li><Check size={15} />A weekly challenge to keep you building</li></ul></>}<FreePlanForm compact source={cartRequest ? "cart_purchase" : "popup"} planNames={requestedPlans} onSuccess={(result) => { setDeliveryStatus(result?.deliveryStatus); setSubmitted(true); }} /><button className="text-button" type="button" onClick={close}>No thanks, I’ll keep guessing.</button></>}</div></div>;
 }
 
 export function Marquee({ text = "BUILD STRONGER HABITS" }: { text?: string }) { return <div className="marquee" aria-label={text}><div>{Array.from({ length: 8 }, (_, index) => <span key={index}>{text} <b>✦</b></span>)}</div></div>; }

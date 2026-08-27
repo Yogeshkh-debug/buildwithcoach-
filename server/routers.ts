@@ -10,10 +10,14 @@ import {
   addNewsletterSubscriber,
   addStorySubmission,
   addWaitlistRequest,
+  getPdfDeliveryPayload,
   getPublishedArticle,
   listFutureProducts,
   listPublishedArticles,
+  markPdfDeliveryFailed,
+  markPdfDeliverySent,
 } from "./db";
+import { sendMailjetPdfDelivery } from "./mailjetDelivery";
 
 const emailSchema = z.string().trim().email("Enter a valid email address.").max(320);
 const nameSchema = z.string().trim().min(2, "Enter at least 2 characters.").max(160);
@@ -39,7 +43,23 @@ export const appRouter = router({
   captures: router({
     newsletter: publicCaptureProcedure.input(z.object({ name: z.string().trim().max(160).optional(), email: emailSchema, source: z.string().trim().min(2).max(80) })).mutation(({ input }) => addNewsletterSubscriber(input)),
     freePlan: publicCaptureProcedure.input(z.object({ name: nameSchema, email: emailSchema })).mutation(({ input }) => addFreePlanSignup(input)),
-    cartRequest: publicCaptureProcedure.input(z.object({ name: nameSchema, email: emailSchema, planNames: z.array(z.string().trim().min(2).max(160)).min(1).max(8) })).mutation(({ input }) => addCartRequest(input)),
+    cartRequest: publicCaptureProcedure.input(z.object({ name: nameSchema, email: emailSchema, planNames: z.array(z.string().trim().min(2).max(160)).min(1).max(4) })).mutation(async ({ input }) => {
+      const created = await addCartRequest(input);
+      if (!created.deliveryRequestId) return created;
+
+      const payload = await getPdfDeliveryPayload(created.deliveryRequestId);
+      if (!payload) return { ...created, deliveryStatus: "failed" as const };
+
+      const result = await sendMailjetPdfDelivery({
+        requestId: created.deliveryRequestId,
+        recipientName: payload.request.name,
+        recipientEmail: payload.request.email,
+        plans: payload.items.map((item) => ({ title: item.planName, storageKey: item.storageKey })),
+      });
+      if (result.status === "sent") await markPdfDeliverySent(created.deliveryRequestId, result.providerMessageId);
+      if (result.status === "failed") await markPdfDeliveryFailed(created.deliveryRequestId, result.errorMessage);
+      return { ...created, deliveryStatus: result.status };
+    }),
     waitlist: publicCaptureProcedure.input(z.object({ name: z.string().trim().max(160).optional(), email: emailSchema })).mutation(({ input }) => addWaitlistRequest(input)),
     contact: publicCaptureProcedure.input(z.object({ name: nameSchema, email: emailSchema, message: z.string().trim().min(10, "Write at least 10 characters.").max(3000) })).mutation(({ input }) => addContactMessage(input)),
     story: publicCaptureProcedure.input(z.object({

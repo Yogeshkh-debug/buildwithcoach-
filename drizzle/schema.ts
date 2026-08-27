@@ -59,6 +59,26 @@ export const downloads = mysqlTable("downloads", {
   createdAt: timestamp("createdAt").defaultNow().notNull(),
 });
 
+export const pdfDeliveryRequests = mysqlTable("pdf_delivery_requests", {
+  id: int("id").autoincrement().primaryKey(),
+  name: varchar("name", { length: 160 }).notNull(),
+  email: varchar("email", { length: 320 }).notNull(),
+  status: varchar("status", { length: 40 }).default("pending_provider_setup").notNull(),
+  providerMessageId: varchar("providerMessageId", { length: 255 }),
+  errorMessage: text("errorMessage"),
+  sentAt: timestamp("sentAt"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export const pdfDeliveryItems = mysqlTable("pdf_delivery_items", {
+  id: int("id").autoincrement().primaryKey(),
+  requestId: int("requestId").notNull(),
+  planName: varchar("planName", { length: 160 }).notNull(),
+  storageKey: varchar("storageKey", { length: 320 }).notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+
 export const contactMessages = mysqlTable("contact_messages", {
   id: int("id").autoincrement().primaryKey(),
   name: varchar("name", { length: 160 }).notNull(),

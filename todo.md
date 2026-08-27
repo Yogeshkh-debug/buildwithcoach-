@@ -193,3 +193,39 @@
 - [x] Initiate the GitHub authorization flow so the user can approve repository-creation access directly.
 
 - [x] Diagnose the reported GitHub authorization disconnection and restore a stable repository-creation approval path.
+
+- [x] Audit the existing Buy popup, selected-plan request record, managed PDF references, and storage availability for automatic delivery.
+- [x] Configure a secure transactional email provider and sender identity for customer PDF delivery.
+- [x] Deliver only the PDF plans selected in the cart after a valid email request, while recording delivery status in the database.
+- [x] Test success and failure paths for the buyer request, email delivery, storage links, and responsive frontend feedback.
+
+- [x] Validate and upload the supplied Home Zero, Gym Build, Fuel Plan, and Zero to Growth PDFs to managed storage without placing them in the project source tree.
+- [x] Map each stored PDF securely to its matching cart plan for automatic selected-plan delivery.
+
+- [x] Add persistent per-plan delivery records and safe request states for pending, sent, and failed email delivery.
+- [x] Do not integrate Brevo after its workspace setup failed; use the verified single Mailjet account without account rotation to bypass service limits.
+- [x] Refine the Buy popup feedback so buyers see accurate selected-plan delivery status and never a false “sent” result.
+
+- [x] Check the Brevo account flow directly and identify that its mobile account-switch page was not progressing.
+- [x] Guide the owner through the unavoidable verified-sender and API-key approval steps, then activate automated selected-PDF delivery through Mailjet.
+
+- [x] Select Mailjet as the simpler legitimate free-tier transactional email provider after the Brevo workspace setup failed.
+- [x] Replace the Brevo-specific delivery adapter with the verified Mailjet provider.
+
+- [x] Complete a final Mailjet setup check and confirm that its account flow and credentials are usable.
+- [x] Do not activate the immediate-download fallback because Mailjet is available for automatic selected-PDF delivery.
+- [x] Keep captured buyer emails available for the owner’s manual weekly-challenge outreach while separately using automated PDF delivery.
+
+- [x] Do not retain the unavailable-provider immediate-download branch after Mailjet delivery was successfully verified.
+- [x] Retain the buyer contact record for manual weekly-challenge outreach and send only the selected plan links through Mailjet.
+
+- [x] Pause provider activation while the owner tested Mailjet manually, then finalize verified Mailjet delivery.
+
+- [x] Guide the owner through Mailjet sender verification and secure API key retrieval for selected-PDF email delivery.
+- [x] Replace the temporary direct-download fallback with Mailjet delivery after verified credentials are supplied.
+- [x] Test the active Mailjet delivery path without exposing API credentials or sending unapproved customer messages.
+
+- [x] Store the owner’s verified Mailjet API key, secret key, and sender address through secure project configuration.
+- [x] Replace the direct-download fallback with automatic Mailjet delivery of only the buyer’s selected PDFs.
+
+- [x] Diagnose the failed owner-approved Home Zero Mailjet test without logging secrets, correct the delivery error, and revalidate the buyer flow.

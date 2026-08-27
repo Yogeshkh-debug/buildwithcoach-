@@ -8,6 +8,8 @@ import {
   freePlanSignups,
   futureProducts,
   InsertUser,
+  pdfDeliveryItems,
+  pdfDeliveryRequests,
   storySubmissions,
   users,
 } from "../drizzle/schema";
@@ -15,6 +17,7 @@ import { articleSeeds, serializeArticleBody } from "./articleSeed";
 import { ENV } from "./_core/env";
 import { storagePut } from "./storage";
 import { assertSafeStoryImage } from "./security";
+import { resolvePlanDeliveryItems } from "./planDelivery";
 
 let _db: ReturnType<typeof drizzle> | null = null;
 let articleSeedPromise: Promise<void> | null = null;
@@ -136,11 +139,82 @@ export async function addFreePlanSignup(input: { name: string; email: string }) 
 }
 
 export async function addCartRequest(input: { name: string; email: string; planNames: string[] }) {
+  const deliveryItems = resolvePlanDeliveryItems(input.planNames);
   const db = await getDb();
-  if (!db) return { success: true, persisted: false };
-  await db.insert(downloads).values(input.planNames.map((resourceName) => ({ email: input.email, resourceName, status: "pending_delivery" })));
+  if (!db) {
+    return {
+      success: true,
+      persisted: false,
+      deliveryStatus: "pending_provider_setup" as const,
+      deliveryRequestId: null,
+      planNames: deliveryItems.map((item) => item.title),
+    };
+  }
+
+  const deliveryRequestId = await db.transaction(async (tx) => {
+    const result = await tx.insert(pdfDeliveryRequests).values({
+      name: input.name,
+      email: input.email,
+      status: "pending_provider_setup",
+    });
+    const requestId = Number(result[0].insertId);
+
+    await tx.insert(pdfDeliveryItems).values(deliveryItems.map((item) => ({
+      requestId,
+      planName: item.title,
+      storageKey: item.storageKey,
+    })));
+
+    await tx.insert(downloads).values(deliveryItems.map((item) => ({
+      email: input.email,
+      resourceName: item.title,
+      status: "pending_delivery",
+    })));
+
+    return requestId;
+  });
+
   await addNewsletterSubscriber({ name: input.name, email: input.email, source: "cart_pdf_request" });
-  return { success: true, persisted: true };
+  return {
+    success: true,
+    persisted: true,
+    deliveryStatus: "pending_provider_setup" as const,
+    deliveryRequestId,
+    planNames: deliveryItems.map((item) => item.title),
+  };
+}
+
+export async function getPdfDeliveryPayload(requestId: number) {
+  const db = await getDb();
+  if (!db) return null;
+
+  const request = await db.select().from(pdfDeliveryRequests).where(eq(pdfDeliveryRequests.id, requestId)).limit(1);
+  if (!request[0]) return null;
+
+  const items = await db.select().from(pdfDeliveryItems).where(eq(pdfDeliveryItems.requestId, requestId));
+  return { request: request[0], items };
+}
+
+export async function markPdfDeliverySent(requestId: number, providerMessageId: string) {
+  const db = await getDb();
+  if (!db) return false;
+  await db.update(pdfDeliveryRequests).set({
+    status: "sent",
+    providerMessageId,
+    errorMessage: null,
+    sentAt: new Date(),
+  }).where(eq(pdfDeliveryRequests.id, requestId));
+  return true;
+}
+
+export async function markPdfDeliveryFailed(requestId: number, errorMessage: string) {
+  const db = await getDb();
+  if (!db) return false;
+  await db.update(pdfDeliveryRequests).set({
+    status: "failed",
+    errorMessage: errorMessage.slice(0, 4_000),
+  }).where(eq(pdfDeliveryRequests.id, requestId));
+  return true;
 }
 
 export async function addWaitlistRequest(input: { name?: string; email: string }) {
