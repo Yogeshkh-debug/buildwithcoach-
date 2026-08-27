@@ -235,3 +235,5 @@
 
 - [x] Save every buyer request before delivery, classify Mailjet daily-limit responses separately, and show the friendly delay note only for that limit outcome.
 - [x] Keep non-limit Mailjet failures separate from the daily-limit message and verify both buyer-facing states.
+
+- [x] Keep the friendly daily-limit note honest by promising follow-up rather than an automatic retry that is not implemented.
