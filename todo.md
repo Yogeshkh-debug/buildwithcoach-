@@ -292,3 +292,8 @@
 - [x] Prepare a complete owner report covering PDF attachments, private program access, email-delivery limits, weekly automation, and owner controls.
 
 - [x] Add buyer-facing guidance to check Inbox, Spam, Promotions, and All Mail for the PDF attachment email.
+
+- [ ] Publish the verified current-hosting checkpoint before activating live scheduled work.
+- [ ] Activate the approved Sunday 6 PM local-time challenge job for opted-in PDF buyers after publication.
+
+- [x] Add the Sunday weekly-challenge opt-in checkbox to the initial free-starter email popup, not only the Buy PDF checkout popup.

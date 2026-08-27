@@ -163,7 +163,7 @@ export const appRouter = router({
   }),
   captures: router({
     newsletter: publicCaptureProcedure.input(z.object({ name: z.string().trim().max(160).optional(), email: emailSchema, source: z.string().trim().min(2).max(80) })).mutation(({ input }) => addNewsletterSubscriber(input)),
-    freePlan: publicCaptureProcedure.input(z.object({ name: nameSchema, email: emailSchema })).mutation(async ({ input }) => {
+    freePlan: publicCaptureProcedure.input(z.object({ name: nameSchema, email: emailSchema, weeklyChallengeOptIn: z.boolean().default(false), timeZone: timeZoneSchema.default("UTC") })).mutation(async ({ input }) => {
       const created = await addFreePlanSignup(input);
       if (!created.freePlanSignupId) return { ...created, deliveryStatus: "failed" as const };
       const accessCode = await createBuyerAccessCode(input.email);

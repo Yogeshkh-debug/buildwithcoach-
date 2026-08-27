@@ -133,12 +133,31 @@ export async function addNewsletterSubscriber(input: { name?: string; email: str
   return { success: true, persisted: true };
 }
 
-export async function addFreePlanSignup(input: { name: string; email: string }) {
+export async function addFreePlanSignup(input: { name: string; email: string; weeklyChallengeOptIn?: boolean; timeZone?: string }) {
   const db = await getDb();
   if (!db) return { success: true, persisted: false, freePlanSignupId: null };
+  const weeklyChallengeOptIn = input.weeklyChallengeOptIn === true;
+  const timeZone = input.timeZone ?? "UTC";
   const result = await db.insert(freePlanSignups).values({ name: input.name, email: input.email, planName: "7-Day Fat Loss Starter", status: "requested" });
   await db.insert(downloads).values({ email: input.email, resourceName: "7-Day Fat Loss Starter", status: "pending_delivery" });
-  await addNewsletterSubscriber({ name: input.name, email: input.email, source: "free_plan" });
+  await db.insert(emailSubscribers).values({
+    name: input.name,
+    email: input.email,
+    consent: weeklyChallengeOptIn ? 1 : 0,
+    source: "free_plan",
+    isPdfBuyer: weeklyChallengeOptIn ? 1 : 0,
+    weeklyChallengeOptIn: weeklyChallengeOptIn ? 1 : 0,
+    timeZone,
+  }).onDuplicateKeyUpdate({
+    set: {
+      name: input.name,
+      source: "free_plan",
+      consent: weeklyChallengeOptIn ? 1 : 0,
+      isPdfBuyer: weeklyChallengeOptIn ? 1 : 0,
+      weeklyChallengeOptIn: weeklyChallengeOptIn ? 1 : 0,
+      timeZone,
+    },
+  });
   return { success: true, persisted: true, freePlanSignupId: Number(result[0].insertId) };
 }
 

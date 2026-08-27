@@ -127,7 +127,7 @@ export function FreePlanForm({ compact = false, source = "free_plan", onSuccess,
       if (planNames.length) onRequestStarted?.();
       const result = planNames.length
         ? await cartMutation.mutateAsync({ name: name.trim(), email: email.trim(), planNames, weeklyChallengeOptIn, timeZone })
-        : await mutation.mutateAsync({ name: name.trim(), email: email.trim() });
+        : await mutation.mutateAsync({ name: name.trim(), email: email.trim(), weeklyChallengeOptIn, timeZone });
       const candidateStatus = "deliveryStatus" in result ? result.deliveryStatus : undefined;
       const deliveryStatus: DeliveryResult["deliveryStatus"] = candidateStatus === "sent" || candidateStatus === "limit_reached" || candidateStatus === "failed"
         ? candidateStatus
@@ -146,7 +146,7 @@ export function FreePlanForm({ compact = false, source = "free_plan", onSuccess,
   };
   return <form className={`capture-form ${compact ? "compact" : ""}`} onSubmit={submit} noValidate data-source={source}>
     <div className="form-fields"><Field label="Name"><input value={name} onChange={(event) => setName(event.target.value)} placeholder="Your name" aria-invalid={Boolean(errors.name)} />{errors.name ? <small className="field-error">{errors.name}</small> : null}</Field><Field label="Email"><input value={email} onChange={(event) => setEmail(event.target.value)} placeholder="you@email.com" type="email" aria-invalid={Boolean(errors.email)} />{errors.email ? <small className="field-error">{errors.email}</small> : null}</Field></div>
-    {planNames.length ? <label className="weekly-challenge-consent"><input type="checkbox" checked={weeklyChallengeOptIn} onChange={(event) => setWeeklyChallengeOptIn(event.target.checked)} /><span><strong>Yes, send me Sunday weekly challenges.</strong><small>Useful training and food challenges at 6:00 PM in your local time zone. Unsubscribe anytime.</small></span></label> : null}
+    {(planNames.length || source === "popup") ? <label className="weekly-challenge-consent"><input type="checkbox" checked={weeklyChallengeOptIn} onChange={(event) => setWeeklyChallengeOptIn(event.target.checked)} /><span><strong>Yes, send me Sunday weekly challenges.</strong><small>Useful training and food challenges at 6:00 PM in your local time zone. Unsubscribe anytime.</small></span></label> : null}
     <button className="black-button form-button" type="submit" disabled={mutation.isPending || cartMutation.isPending}>{mutation.isPending || cartMutation.isPending ? "Sending…" : planNames.length ? "Request my PDFs" : "Send me the plan"}<ArrowRight size={16} /></button>
     <Notice notice={notice} /><p className="form-privacy">No spam. Unsubscribe anytime.</p>
   </form>;

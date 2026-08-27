@@ -96,7 +96,7 @@ describe("public capture validation", () => {
 
   it("rejects incomplete free-plan requests before persistence", async () => {
     const caller = appRouter.createCaller(ctx);
-    await expect(caller.captures.freePlan({ name: "A", email: "not-an-email" })).rejects.toMatchObject({ code: "BAD_REQUEST" });
+    await expect(caller.captures.freePlan({ name: "A", email: "not-an-email", weeklyChallengeOptIn: false, timeZone: "UTC" })).rejects.toMatchObject({ code: "BAD_REQUEST" });
   });
 
   it("rejects cart PDF requests without a valid email and selected plan", async () => {
