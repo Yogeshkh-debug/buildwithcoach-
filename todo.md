@@ -244,3 +244,7 @@
 - [x] Verify that non-owners cannot access delivery data or actions, then test the delivery dashboard at phone and desktop widths.
 
 - [x] Add friendly emoji-based delay reasons for Mailjet daily-limit and other saved delivery failures without hiding the real cause.
+
+- [x] Keep Brevo out of the delivery workflow after the owner selected Resend instead.
+- [x] Add Resend as a backup only for genuine Mailjet technical failures, while keeping Mailjet daily-limit and account-limit outcomes out of the fallback path.
+- [x] Verify primary Mailjet delivery, eligible Resend backup delivery, and daily-limit non-fallback behavior without exposing either provider credential.
