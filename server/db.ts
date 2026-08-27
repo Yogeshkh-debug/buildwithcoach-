@@ -445,7 +445,7 @@ export type OwnerDeliveryRecord = {
 };
 
 export function getFriendlyDeliveryReason(status: string, errorMessage: string | null) {
-  if (status === "sent") return "✅ Sent — the selected PDF links were accepted for delivery.";
+  if (status === "sent") return "✅ Sent — the selected PDF attachments were accepted for delivery.";
   if (errorMessage && /(?:daily|hourly|sending|send)[\s\S]{0,40}(?:limit|quota)|(?:limit|quota)[\s\S]{0,40}(?:daily|hourly|sending|send)|too many requests/i.test(errorMessage)) {
     return "📬 Free email limit reached — the request is saved and ready for a manual resend.";
   }

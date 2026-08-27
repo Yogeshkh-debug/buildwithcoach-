@@ -13,11 +13,12 @@ const originalMailjetSender = process.env.MAILJET_SENDER_EMAIL;
 const originalResendKey = process.env.RESEND_API_KEY;
 const originalResendSender = process.env.RESEND_SENDER_EMAIL;
 
-function response(status: number, payload: unknown) {
+function response(status: number, payload: unknown, bytes?: Uint8Array) {
   return {
     ok: status >= 200 && status < 300,
     status,
     json: async () => payload,
+    arrayBuffer: async () => (bytes ?? new TextEncoder().encode("%PDF-1.7 test")).buffer,
   } as Response;
 }
 
@@ -39,8 +40,9 @@ describe("Mailjet technical-failure Resend backup", () => {
     process.env.RESEND_SENDER_EMAIL = originalResendSender;
   });
 
-  it("uses Resend after a Mailjet 5xx technical failure and carries only the selected PDF", async () => {
+  it("uses Resend after a Mailjet 5xx technical failure and carries only the selected PDF attachment", async () => {
     const fetchMock = vi.fn()
+      .mockResolvedValueOnce(response(200, {}, new TextEncoder().encode("%PDF-1.7 selected plan")))
       .mockResolvedValueOnce(response(503, { Messages: [{ Status: "error", Errors: [{ ErrorMessage: "Service unavailable" }] }] }))
       .mockResolvedValueOnce(response(200, { id: "resend-message-id" }));
     global.fetch = fetchMock as typeof fetch;
@@ -49,37 +51,39 @@ describe("Mailjet technical-failure Resend backup", () => {
       requestId: 42,
       recipientName: "Jordan",
       recipientEmail: "jordan@example.com",
-      plans: [{ title: "Home Zero", storageKey: "pdfs/home-zero.pdf" }],
+      plans: [{ title: "Home Zero", storageKey: "pdfs/home-zero.pdf", fileName: "Home-Zero.pdf" }],
     });
 
     expect(result).toEqual({ status: "sent", providerMessageId: "resend:resend-message-id" });
-    expect(fetchMock).toHaveBeenCalledTimes(2);
-    expect(fetchMock.mock.calls[1]?.[0]).toBe("https://api.resend.com/emails");
-    expect(fetchMock.mock.calls[1]?.[1]).toMatchObject({
+    expect(fetchMock).toHaveBeenCalledTimes(3);
+    expect(fetchMock.mock.calls[2]?.[0]).toBe("https://api.resend.com/emails");
+    expect(fetchMock.mock.calls[2]?.[1]).toMatchObject({
       headers: expect.objectContaining({
         Authorization: "Bearer resend-key",
         "Idempotency-Key": "pdf-delivery-resend-42",
       }),
     });
-    expect(fetchMock.mock.calls[1]?.[1]?.body).toContain("Home Zero");
-    expect(fetchMock.mock.calls[1]?.[1]?.body).not.toContain("Fuel Plan");
+    expect(fetchMock.mock.calls[2]?.[1]?.body).toContain("Home Zero");
+    expect(fetchMock.mock.calls[2]?.[1]?.body).toContain("Home-Zero.pdf");
+    expect(fetchMock.mock.calls[2]?.[1]?.body).toContain("Build With Coach <coach@resend.example>");
+    expect(fetchMock.mock.calls[2]?.[1]?.body).not.toContain("Fuel Plan");
   });
 
   it("does not use Resend after a Mailjet sending-limit response", async () => {
-    const fetchMock = vi.fn().mockResolvedValue(response(429, {
-      Messages: [{ Status: "error", Errors: [{ ErrorMessage: "Daily sending limit reached" }] }],
-    }));
+    const fetchMock = vi.fn()
+      .mockResolvedValueOnce(response(200, {}, new TextEncoder().encode("%PDF-1.7 selected plan")))
+      .mockResolvedValueOnce(response(429, { Messages: [{ Status: "error", Errors: [{ ErrorMessage: "Daily sending limit reached" }] }] }));
     global.fetch = fetchMock as typeof fetch;
 
     const result = await sendMailjetPdfDelivery({
       requestId: 43,
       recipientName: "Jordan",
       recipientEmail: "jordan@example.com",
-      plans: [{ title: "Home Zero", storageKey: "pdfs/home-zero.pdf" }],
+      plans: [{ title: "Home Zero", storageKey: "pdfs/home-zero.pdf", fileName: "Home-Zero.pdf" }],
     });
 
     expect(result).toEqual({ status: "limit_reached", errorMessage: "Daily sending limit reached" });
-    expect(fetchMock).toHaveBeenCalledTimes(1);
+    expect(fetchMock).toHaveBeenCalledTimes(2);
   });
 
   it("identifies only Mailjet 5xx responses as eligible technical failures", () => {

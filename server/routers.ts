@@ -28,10 +28,10 @@ import {
   saveWeeklyChallengeSchedule,
   updateBuyerChallengePreferences,
 } from "./db";
-import { sendBuyerAccessCodeEmail } from "./mailjetDelivery";
+import { sendBuyerAccessCodeEmail, sendMailjetPdfDelivery } from "./mailjetDelivery";
 import { createBuyerSession, verifyBuyerSession } from "./buyerSession";
-import { storageGetSignedUrl } from "./storage";
 import { createHeartbeatJob } from "./_core/heartbeat";
+import { freeStarterDeliveryItem, resolvePlanDeliveryItems } from "./planDelivery";
 
 const emailSchema = z.string().trim().email("Enter a valid email address.").max(320);
 const nameSchema = z.string().trim().min(2, "Enter at least 2 characters.").max(160);
@@ -77,12 +77,12 @@ export const appRouter = router({
 
       const accessCode = await createBuyerAccessCode(payload.request.email);
       if (!accessCode) return { status: "failed" as const, message: "Could not prepare a secure program access code." };
-      const result = await sendBuyerAccessCodeEmail({
+      const result = await sendMailjetPdfDelivery({
         requestId: input.requestId,
         recipientName: payload.request.name,
         recipientEmail: payload.request.email,
-        code: accessCode.code,
-        programNames: payload.items.map((item) => item.planName),
+        plans: resolvePlanDeliveryItems(payload.items.map((item) => item.planName)),
+        accessCode: accessCode.code,
       });
       if (result.status === "sent") {
         await markPdfDeliverySent(input.requestId, result.providerMessageId);
@@ -127,7 +127,7 @@ export const appRouter = router({
       if (!email) return { status: "unauthorized" as const };
       const program = await getBuyerProgram(email, input.title);
       if (!program) return { status: "not_found" as const };
-      return { status: "authorized" as const, url: await storageGetSignedUrl(program.storageKey), fileName: program.fileName };
+      return { status: "authorized" as const, url: `/api/buyer-program/download/${encodeURIComponent(program.title)}`, fileName: program.fileName };
     }),
     logout: publicProcedure.mutation(({ ctx }) => {
       ctx.res.clearCookie(BUYER_SESSION_COOKIE, { ...getSessionCookieOptions(ctx.req), maxAge: -1 });
@@ -168,12 +168,12 @@ export const appRouter = router({
       if (!created.freePlanSignupId) return { ...created, deliveryStatus: "failed" as const };
       const accessCode = await createBuyerAccessCode(input.email);
       if (!accessCode) return { ...created, deliveryStatus: "failed" as const };
-      const result = await sendBuyerAccessCodeEmail({
+      const result = await sendMailjetPdfDelivery({
         requestId: created.freePlanSignupId,
         recipientName: input.name,
         recipientEmail: input.email,
-        code: accessCode.code,
-        programNames: ["7-Day Fat Loss Starter"],
+        plans: [freeStarterDeliveryItem],
+        accessCode: accessCode.code,
       });
       return { ...created, deliveryStatus: result.status };
     }),
@@ -186,12 +186,12 @@ export const appRouter = router({
 
       const accessCode = await createBuyerAccessCode(input.email);
       if (!accessCode) return { ...created, deliveryStatus: "failed" as const };
-      const result = await sendBuyerAccessCodeEmail({
+      const result = await sendMailjetPdfDelivery({
         requestId: created.deliveryRequestId,
         recipientName: payload.request.name,
         recipientEmail: payload.request.email,
-        code: accessCode.code,
-        programNames: payload.items.map((item) => item.planName),
+        plans: resolvePlanDeliveryItems(payload.items.map((item) => item.planName)),
+        accessCode: accessCode.code,
       });
       if (result.status === "sent") await markPdfDeliverySent(created.deliveryRequestId, result.providerMessageId);
       if (result.status === "limit_reached") await markPdfDeliveryFailed(created.deliveryRequestId, result.errorMessage);

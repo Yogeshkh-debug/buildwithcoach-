@@ -258,3 +258,29 @@
 
 - [x] Build the confirmed in-site private My Programs page where buyers use their email identity to view only the programs assigned to them and can return anytime.
 - [ ] Send varied Sunday weekly challenges at 6:00 PM in each opted-in PDF buyer’s saved local time zone.
+
+- [ ] Replace the built-in scheduler dependency with a Vercel Cron-compatible, protected Sunday challenge trigger.
+- [ ] Add Vercel deployment configuration and a clear environment-variable handoff without exposing secrets.
+- [ ] Verify the Vercel-ready build and protected cron path before handing the project back for deployment.
+
+- [ ] Remove automatic Sunday challenge scheduling after the owner chose manual weekly outreach for the Vercel free-plan deployment.
+- [x] Send one owner-approved real 7-Day Fat Loss Starter My Programs access email to shopurbancanvas@gmail.com and record the provider outcome without exposing credentials.
+- [ ] Create a Vercel free-plan handoff that identifies the required server, database, storage, and email environment configuration without adding a recurring cron.
+
+- [ ] Replace the local-time Sunday scheduler with one protected global Sunday Vercel Cron run for opted-in PDF buyers.
+- [x] Send and verify the owner-approved real 7-Day Fat Loss Starter My Programs access email at shopurbancanvas@gmail.com before Vercel handoff.
+
+- [x] Investigate why the provider-accepted owner test email was not received at shopurbancanvas@gmail.com and correct any website-side delivery issue.
+- [x] Retest the corrected secure starter-program email flow only with the owner’s approval and record the real outcome.
+
+- [x] Audit the five stored program PDF sizes against the transactional-email attachment limits before enabling attachment delivery.
+- [x] Send only the buyer’s selected program PDFs as full email attachments while retaining secure My Programs backup access.
+- [x] Run one owner-approved attachment delivery test to shopurbancanvas@gmail.com after verifying safe attachment size.
+
+- [x] Add a concise My Programs work-in-progress note and an always-visible Back home action without removing the secure access flow.
+
+- [x] Clarify that the reported disconnection belonged to Mailjet rather than the Build With Coach server; no website server restoration was required.
+
+- [x] Investigate the clarified Mailjet dashboard “disconnected from server” state and distinguish it from the email API’s delivery outcome.
+
+- [x] Fix the reported AccessDenied error when an authorized buyer opens a PDF from the private My Programs page, without exposing permanent public links.

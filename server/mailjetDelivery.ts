@@ -3,6 +3,7 @@ import { storageGetSignedUrl } from "./storage";
 export type MailjetDeliveryPlan = {
   title: string;
   storageKey: string;
+  fileName: string;
 };
 
 type MailjetDeliveryInput = {
@@ -10,6 +11,7 @@ type MailjetDeliveryInput = {
   recipientName: string;
   recipientEmail: string;
   plans: MailjetDeliveryPlan[];
+  accessCode?: string;
   sandbox?: boolean;
 };
 
@@ -36,19 +38,24 @@ function escapeHtml(value: string) {
 
 export function buildMailjetPdfMessage(input: {
   recipientName: string;
-  plans: Array<{ title: string; url: string }>;
+  plans: Array<{ title: string; fileName: string }>;
+  accessCode?: string;
 }) {
   const firstName = escapeHtml(input.recipientName.trim().split(/\s+/)[0] || "there");
   const planList = input.plans.map((plan) => {
     const title = escapeHtml(plan.title);
-    const url = escapeHtml(plan.url);
-    return `<li style="margin:0 0 12px"><strong>${title}</strong><br /><a href="${url}">Download ${title}</a></li>`;
+    const fileName = escapeHtml(plan.fileName);
+    return `<li style="margin:0 0 12px"><strong>${title}</strong><br /><span>${fileName}</span></li>`;
   }).join("");
+  const accessCode = input.accessCode ? escapeHtml(input.accessCode) : "";
+  const accessNote = accessCode
+    ? `<p style="margin-top:24px">Your PDFs are attached below. You can also return to <strong>My Programs</strong> anytime and enter this 6-digit access code: <strong style="letter-spacing:3px">${accessCode}</strong></p>`
+    : `<p style="margin-top:24px">Your PDFs are attached below. You can also return to <strong>My Programs</strong> anytime using the email address from this request.</p>`;
 
   return {
-    subject: `Your Build With Coach PDF${input.plans.length === 1 ? "" : "s"}`,
-    html: `<!doctype html><html><body style="margin:0;background:#f6f5f1;color:#0c0e0c;font-family:Arial,sans-serif"><main style="max-width:620px;margin:0 auto;padding:32px"><p style="font-size:12px;letter-spacing:1.8px;font-weight:700">BUILD WITH COACH</p><h1 style="font-size:32px;line-height:1.05;margin:24px 0 16px">Your plan${input.plans.length === 1 ? " is" : "s are"} ready.</h1><p>Good choice, ${firstName}. Download only the PDF${input.plans.length === 1 ? " you selected" : "s you selected"} below.</p><ul style="padding-left:20px">${planList}</ul><p style="margin-top:28px">Keep it simple. Start the first session. Repeat it.</p><hr style="border:0;border-top:1px solid #a9b8ba;margin:28px 0" /><p style="font-size:12px;color:#4e5555">These secure download links are provided for your personal plan delivery.</p></main></body></html>`,
-    text: `Build With Coach\n\nYour selected PDF${input.plans.length === 1 ? " is" : "s are"} ready:\n\n${input.plans.map((plan) => `${plan.title}: ${plan.url}`).join("\n")}\n\nKeep it simple. Start the first session. Repeat it.`,
+    subject: `Your Build With Coach PDF${input.plans.length === 1 ? " is" : "s are"} attached`,
+    html: `<!doctype html><html><body style="margin:0;background:#f6f5f1;color:#0c0e0c;font-family:Arial,sans-serif"><main style="max-width:620px;margin:0 auto;padding:32px"><p style="font-size:12px;letter-spacing:1.8px;font-weight:700">BUILD WITH COACH</p><h1 style="font-size:32px;line-height:1.05;margin:24px 0 16px">Your plan${input.plans.length === 1 ? " is" : "s are"} ready.</h1><p>Good choice, ${firstName}. Your selected full PDF${input.plans.length === 1 ? " is attached" : "s are attached"} to this email.</p><ul style="padding-left:20px">${planList}</ul>${accessNote}<p style="margin-top:28px">Keep it simple. Start the first session. Repeat it.</p><hr style="border:0;border-top:1px solid #a9b8ba;margin:28px 0" /><p style="font-size:12px;color:#4e5555">These attachments are for your personal plan delivery. Keep this email so you can download your PDF again anytime.</p></main></body></html>`,
+    text: `Build With Coach\n\nYour selected full PDF${input.plans.length === 1 ? " is attached" : "s are attached"}:\n\n${input.plans.map((plan) => `${plan.title}: ${plan.fileName}`).join("\n")}${input.accessCode ? `\n\nMy Programs access code: ${input.accessCode}` : ""}\n\nKeep this email so you can download your PDF again anytime.`,
   };
 }
 
@@ -67,7 +74,27 @@ export function buildBuyerAccessCodeMessage(input: {
   };
 }
 
-type DeliveryMessage = ReturnType<typeof buildMailjetPdfMessage>;
+type EmailAttachment = { filename: string; content: string };
+type DeliveryMessage = {
+  subject: string;
+  html: string;
+  text: string;
+  attachments?: EmailAttachment[];
+};
+
+async function loadPdfAttachments(plans: MailjetDeliveryPlan[]): Promise<EmailAttachment[]> {
+  const attachments = await Promise.all(plans.map(async (plan) => {
+    const url = await storageGetSignedUrl(plan.storageKey);
+    const response = await fetch(url);
+    if (!response.ok) throw new Error(`Could not prepare ${plan.title} for email delivery.`);
+    const bytes = Buffer.from(await response.arrayBuffer());
+    if (bytes.subarray(0, 5).toString("ascii") !== "%PDF-") throw new Error(`${plan.title} is not a valid PDF attachment.`);
+    return { filename: plan.fileName, content: bytes.toString("base64") };
+  }));
+  const encodedSize = attachments.reduce((total, attachment) => total + Buffer.byteLength(attachment.content), 0);
+  if (encodedSize > 14 * 1024 * 1024) throw new Error("The selected PDFs are too large to send safely as one email attachment set.");
+  return attachments;
+}
 
 type MailjetAttempt =
   | { status: "sent"; providerMessageId: string }
@@ -106,6 +133,13 @@ async function sendMailjetMessage(input: {
           Subject: input.message.subject,
           HTMLPart: input.message.html,
           TextPart: input.message.text,
+          ...(input.message.attachments?.length ? {
+            Attachments: input.message.attachments.map((attachment) => ({
+              ContentType: "application/pdf",
+              Filename: attachment.filename,
+              Base64Content: attachment.content,
+            })),
+          } : {}),
           CustomID: `pdf-delivery-${input.requestId}`,
         }],
       }),
@@ -119,7 +153,7 @@ async function sendMailjetMessage(input: {
       }>;
     };
     const sentMessage = payload.Messages?.[0];
-    const messageId = sentMessage?.To?.[0]?.MessageUUID ?? (sentMessage?.To?.[0]?.MessageID ? String(sentMessage.To[0].MessageID) : undefined);
+    const messageId = sentMessage?.To?.[0]?.MessageID ? String(sentMessage.To[0].MessageID) : sentMessage?.To?.[0]?.MessageUUID;
     if (!response.ok || sentMessage?.Status !== "success") {
       const errorMessage = sentMessage?.Errors?.[0]?.ErrorMessage || `Mailjet returned ${response.status}.`;
       if (isMailjetSendingLimit(response.status, errorMessage)) return { status: "limit_reached", errorMessage };
@@ -160,6 +194,7 @@ async function sendResendMessage(input: {
         subject: input.message.subject,
         html: input.message.html,
         text: input.message.text,
+        ...(input.message.attachments?.length ? { attachments: input.message.attachments } : {}),
       }),
     });
     const payload = await response.json().catch(() => ({})) as { id?: string; message?: string; name?: string };
@@ -181,11 +216,11 @@ export async function sendMailjetPdfDelivery(input: MailjetDeliveryInput): Promi
   | { status: "failed"; errorMessage: string }
 > {
   try {
-    const plans = await Promise.all(input.plans.map(async (plan) => ({
-      title: plan.title,
-      url: await storageGetSignedUrl(plan.storageKey),
-    })));
-    const message = buildMailjetPdfMessage({ recipientName: input.recipientName, plans });
+    const attachments = await loadPdfAttachments(input.plans);
+    const message = {
+      ...buildMailjetPdfMessage({ recipientName: input.recipientName, plans: input.plans, accessCode: input.accessCode }),
+      attachments,
+    };
     const mailjetResult = await sendMailjetMessage({
       requestId: input.requestId,
       recipientName: input.recipientName,

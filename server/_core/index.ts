@@ -11,6 +11,13 @@ import { sdk } from "./sdk";
 import { serveStatic, setupVite } from "./vite";
 import { applySecurityHeaders } from "../security";
 import { processWeeklyChallenges } from "../weeklyChallenges";
+import { getBuyerProgram } from "../db";
+import { verifyBuyerSession } from "../buyerSession";
+import { storageGetSignedUrl } from "../storage";
+import { getPrivatePdfHeaders } from "../buyerDownload";
+import { parse as parseCookie } from "cookie";
+
+const BUYER_SESSION_COOKIE = "bwc_buyer_session";
 
 function isPortAvailable(port: number): Promise<boolean> {
   return new Promise(resolve => {
@@ -40,6 +47,27 @@ async function startServer() {
   app.use(express.urlencoded({ limit: "32kb", extended: false }));
   registerStorageProxy(app);
   registerOAuthRoutes(app);
+  app.get("/api/buyer-program/download/:title", async (req, res) => {
+    try {
+      const sessionToken = parseCookie(req.headers.cookie ?? "")[BUYER_SESSION_COOKIE];
+      const email = sessionToken ? await verifyBuyerSession(sessionToken) : null;
+      if (!email) return res.status(401).json({ error: "Sign in to My Programs to open this PDF." });
+
+      const program = await getBuyerProgram(email, req.params.title);
+      if (!program) return res.status(404).json({ error: "This PDF is not available for this buyer." });
+
+      const storageUrl = await storageGetSignedUrl(program.storageKey);
+      const fileResponse = await fetch(storageUrl);
+      if (!fileResponse.ok) return res.status(502).json({ error: "The private PDF could not be prepared." });
+
+      const pdfBytes = Buffer.from(await fileResponse.arrayBuffer());
+      if (pdfBytes.subarray(0, 5).toString("ascii") !== "%PDF-") return res.status(502).json({ error: "The requested program is not a valid PDF." });
+      return res.status(200).set(getPrivatePdfHeaders(program.fileName, pdfBytes.byteLength)).send(pdfBytes);
+    } catch (error) {
+      console.error("[BuyerDownload] Secure PDF access failed", error);
+      return res.status(500).json({ error: "The private PDF could not be opened." });
+    }
+  });
   app.post("/api/scheduled/weekly-challenge", async (req, res) => {
     try {
       const actor = await sdk.authenticateRequest(req);
