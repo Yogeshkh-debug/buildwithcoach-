@@ -217,6 +217,64 @@ export async function markPdfDeliveryFailed(requestId: number, errorMessage: str
   return true;
 }
 
+export type OwnerDeliveryRecord = {
+  id: number;
+  name: string;
+  email: string;
+  status: string;
+  providerMessageId: string | null;
+  errorMessage: string | null;
+  sentAt: Date | null;
+  createdAt: Date;
+  updatedAt: Date;
+  planNames: string[];
+  delayReason: string;
+};
+
+export function getFriendlyDeliveryReason(status: string, errorMessage: string | null) {
+  if (status === "sent") return "✅ Sent — the selected PDF links were accepted for delivery.";
+  if (errorMessage && /(?:daily|hourly|sending|send)[\s\S]{0,40}(?:limit|quota)|(?:limit|quota)[\s\S]{0,40}(?:daily|hourly|sending|send)|too many requests/i.test(errorMessage)) {
+    return "📬 Free email limit reached — the request is saved and ready for a manual resend.";
+  }
+  if (status === "pending_provider_setup") return "⏳ Delivery is waiting for its email setup.";
+  return "🛠️ Email machine wobble — review the saved error and resend when ready.";
+}
+
+export async function listOwnerDeliveryRecords(): Promise<OwnerDeliveryRecord[]> {
+  const db = await getDb();
+  if (!db) return [];
+  const [requests, items] = await Promise.all([
+    db.select().from(pdfDeliveryRequests).orderBy(desc(pdfDeliveryRequests.updatedAt)),
+    db.select().from(pdfDeliveryItems),
+  ]);
+  const planNamesByRequest = new Map<number, string[]>();
+  for (const item of items) {
+    const planNames = planNamesByRequest.get(item.requestId) ?? [];
+    planNames.push(item.planName);
+    planNamesByRequest.set(item.requestId, planNames);
+  }
+  return requests.map((request) => ({
+    ...request,
+    planNames: planNamesByRequest.get(request.id) ?? [],
+    delayReason: getFriendlyDeliveryReason(request.status, request.errorMessage),
+  }));
+}
+
+export function ownerDeliveryRecordsToCsv(records: OwnerDeliveryRecord[]) {
+  const escapeCsv = (value: string | number | null | Date) => `"${String(value ?? "").replaceAll('"', '""')}"`;
+  const rows = records.map((record) => [
+    record.id,
+    record.name,
+    record.email,
+    record.planNames.join(" | "),
+    record.status,
+    record.delayReason,
+    record.createdAt.toISOString(),
+    record.sentAt?.toISOString() ?? null,
+  ].map(escapeCsv).join(","));
+  return ["request_id,name,email,selected_plans,status,reason,requested_at,sent_at", ...rows].join("\n");
+}
+
 export async function addWaitlistRequest(input: { name?: string; email: string }) {
   return addNewsletterSubscriber({ ...input, source: "paid_plan_waitlist" });
 }

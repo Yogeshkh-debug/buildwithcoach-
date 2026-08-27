@@ -237,3 +237,10 @@
 - [x] Keep non-limit Mailjet failures separate from the daily-limit message and verify both buyer-facing states.
 
 - [x] Keep the friendly daily-limit note honest by promising follow-up rather than an automatic retry that is not implemented.
+
+- [x] Add owner-only access to review buyer delivery records, recipient emails, selected PDFs, delivery states, and saved delay reasons.
+- [x] Add a safe owner-only resend action for failed or daily-limit delivery requests.
+- [x] Add an owner-only buyer-email CSV export for manual weekly-challenge outreach.
+- [x] Verify that non-owners cannot access delivery data or actions, then test the delivery dashboard at phone and desktop widths.
+
+- [x] Add friendly emoji-based delay reasons for Mailjet daily-limit and other saved delivery failures without hiding the real cause.

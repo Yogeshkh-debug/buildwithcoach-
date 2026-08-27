@@ -2,7 +2,7 @@ import { z } from "zod";
 import { COOKIE_NAME } from "@shared/const";
 import { getSessionCookieOptions } from "./_core/cookies";
 import { systemRouter } from "./_core/systemRouter";
-import { publicCaptureProcedure, publicProcedure, router } from "./_core/trpc";
+import { adminProcedure, publicCaptureProcedure, publicProcedure, router } from "./_core/trpc";
 import {
   addContactMessage,
   addCartRequest,
@@ -11,11 +11,13 @@ import {
   addStorySubmission,
   addWaitlistRequest,
   getPdfDeliveryPayload,
+  listOwnerDeliveryRecords,
   getPublishedArticle,
   listFutureProducts,
   listPublishedArticles,
   markPdfDeliveryFailed,
   markPdfDeliverySent,
+  ownerDeliveryRecordsToCsv,
 } from "./db";
 import { sendMailjetPdfDelivery } from "./mailjetDelivery";
 
@@ -39,6 +41,37 @@ export const appRouter = router({
   }),
   products: router({
     list: publicProcedure.query(() => listFutureProducts()),
+  }),
+  delivery: router({
+    list: adminProcedure.query(() => listOwnerDeliveryRecords()),
+    exportBuyerEmails: adminProcedure.query(async () => {
+      const records = await listOwnerDeliveryRecords();
+      return {
+        fileName: `build-with-coach-pdf-buyers-${new Date().toISOString().slice(0, 10)}.csv`,
+        csv: ownerDeliveryRecordsToCsv(records),
+      };
+    }),
+    resend: adminProcedure.input(z.object({ requestId: z.number().int().positive() })).mutation(async ({ input }) => {
+      const payload = await getPdfDeliveryPayload(input.requestId);
+      if (!payload) return { status: "failed" as const, message: "This saved delivery request was not found." };
+      if (payload.request.status === "sent") return { status: "already_sent" as const, message: "This request has already been sent." };
+
+      const result = await sendMailjetPdfDelivery({
+        requestId: input.requestId,
+        recipientName: payload.request.name,
+        recipientEmail: payload.request.email,
+        plans: payload.items.map((item) => ({ title: item.planName, storageKey: item.storageKey })),
+      });
+      if (result.status === "sent") {
+        await markPdfDeliverySent(input.requestId, result.providerMessageId);
+        return { status: "sent" as const, message: "Selected PDFs sent successfully." };
+      }
+      if (result.status === "limit_reached" || result.status === "failed") {
+        await markPdfDeliveryFailed(input.requestId, result.errorMessage);
+        return { status: result.status, message: result.errorMessage };
+      }
+      return { status: "failed" as const, message: "Mailjet returned an unexpected validation state." };
+    }),
   }),
   captures: router({
     newsletter: publicCaptureProcedure.input(z.object({ name: z.string().trim().max(160).optional(), email: emailSchema, source: z.string().trim().min(2).max(80) })).mutation(({ input }) => addNewsletterSubscriber(input)),

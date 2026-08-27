@@ -1,10 +1,12 @@
 import DashboardLayout from "@/components/DashboardLayout";
 import { ArticleCard, CalculatorPanel, ContactForm, FreePlanForm, Marquee, PageHero, SectionHeading, SiteFooter, SiteHeader, WaitlistForm } from "@/components/SiteComponents";
+import { useAuth } from "@/_core/hooks/useAuth";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { parseArticleBody, programCatalog, type PublicArticle } from "@/lib/content";
 import { useCart } from "@/contexts/CartContext";
 import { trpc } from "@/lib/trpc";
 import { startLogin } from "@/const";
-import { ArrowLeft, ArrowRight, Check, Download, LockKeyhole, Sparkles } from "lucide-react";
+import { AlertTriangle, ArrowLeft, ArrowRight, Check, Download, FileDown, LockKeyhole, Mail, RefreshCw, ShieldCheck, Sparkles } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Link, useLocation, useRoute } from "wouter";
 
@@ -30,3 +32,38 @@ export function ContactPage() { return <PublicLayout><section className="contact
 export function LoginPage({ signup = false }: { signup?: boolean }) { return <PublicLayout><section className="auth-page"><div className="auth-art"><span className="auth-disc" /><LockKeyhole size={52} /><p>YOUR NEXT<br />CHAPTER</p></div><div className="auth-copy"><p className="eyebrow">{signup ? "CREATE ACCOUNT" : "LOGIN"}</p><h1>{signup ? "Join Build With Coach." : "Welcome back."}</h1><p>{signup ? "Create an account to access future saved plans, downloads, and dashboard features." : "Access your dashboard and future saved plans."}</p><button className="black-button" type="button" onClick={() => startLogin()}>{signup ? "Create account" : "Log in"}<ArrowRight size={16} /></button><p className="auth-switch">{signup ? "Already have access?" : "New here?"} <Link href={signup ? "/login" : "/signup"}>{signup ? "Log in" : "Create an account"}</Link></p></div></section></PublicLayout>; }
 
 export function DashboardPage() { return <DashboardLayout><div className="dashboard-placeholder"><p className="eyebrow">BUILD WITH COACH / DASHBOARD</p><h1>Your system is taking shape.</h1><p>Your future dashboard will be home to the Free 7-Day Starter, saved guides, plan downloads, profile settings, and future paid plans.</p><div className="dashboard-panels"><article><Download size={24} /><h3>Free plan access</h3><p>Your requested resources will appear here.</p></article><article><Sparkles size={24} /><h3>Saved guidance</h3><p>Future saved articles and follow-up checklists.</p></article><article><Check size={24} /><h3>Progress system</h3><p>Future check-ins, habits, and challenges.</p></article></div></div></DashboardLayout>; }
+
+export function DeliveryAdminPage() {
+  const { user, loading } = useAuth();
+  const utils = trpc.useUtils();
+  const isOwner = user?.role === "admin";
+  const { data: records = [], isLoading, error } = trpc.delivery.list.useQuery(undefined, { enabled: isOwner, retry: false });
+  const exportQuery = trpc.delivery.exportBuyerEmails.useQuery(undefined, { enabled: false, retry: false });
+  const [activeResendId, setActiveResendId] = useState<number | null>(null);
+  const [notice, setNotice] = useState("");
+  const resend = trpc.delivery.resend.useMutation({
+    onSuccess: async (result) => {
+      setNotice(result.status === "sent" ? "Selected PDFs sent again." : result.status === "limit_reached" ? "📬 The free email limit is still full. This request stays saved." : result.message);
+      await utils.delivery.list.invalidate();
+    },
+    onError: () => setNotice("Could not resend that request. Please try again."),
+    onSettled: () => setActiveResendId(null),
+  });
+  const downloadEmails = async () => {
+    const result = await exportQuery.refetch();
+    if (!result.data) return setNotice("Could not prepare the email export. Please try again.");
+    const blob = new Blob([result.data.csv], { type: "text/csv;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = result.data.fileName;
+    link.click();
+    URL.revokeObjectURL(url);
+    setNotice("Buyer email export downloaded.");
+  };
+
+  if (loading) return <PublicLayout><section className="delivery-admin loading"><p className="eyebrow">OWNER DELIVERY DESK</p><h1>Checking access…</h1></section></PublicLayout>;
+  if (!isOwner) return <PublicLayout><section className="delivery-admin access-denied"><span className="delivery-admin-icon"><LockKeyhole size={28} /></span><p className="eyebrow">OWNER ACCESS ONLY</p><h1>This desk is locked.</h1><p>Delivery records include private buyer emails and plan requests. Sign in with the Build With Coach owner account to open it.</p>{user ? <Link href="/" className="black-button">Back home <ArrowRight size={16} /></Link> : <button className="black-button" type="button" onClick={() => startLogin()}>Sign in as owner <ArrowRight size={16} /></button>}</section></PublicLayout>;
+
+  return <PublicLayout><section className="delivery-admin"><header className="delivery-admin-head"><div><p className="eyebrow">OWNER DELIVERY DESK</p><h1>PDFs, emails,<br /><em>under control.</em></h1><p>Every buyer request is saved before delivery. Review exact plans, delay reasons, and resend only when you are ready.</p></div><aside><span><ShieldCheck size={21} /> Private owner view</span><button className="black-button" type="button" onClick={downloadEmails} disabled={exportQuery.isFetching}><FileDown size={16} />{exportQuery.isFetching ? "Preparing export…" : "Export buyer emails"}</button></aside></header>{notice ? <p className="delivery-admin-notice" role="status">{notice}</p> : null}{error ? <div className="delivery-admin-empty"><AlertTriangle size={30} /><h2>Delivery records could not load.</h2><p>Please refresh the page and try again.</p></div> : isLoading ? <div className="delivery-admin-empty"><Mail size={30} /><h2>Loading saved deliveries…</h2></div> : records.length === 0 ? <div className="delivery-admin-empty"><Mail size={30} /><h2>No PDF requests yet.</h2><p>When someone buys a plan, their name, email, selected PDFs, and delivery result appear here.</p></div> : <div className="delivery-log"><Table><TableHeader><TableRow><TableHead>Buyer</TableHead><TableHead>Plans</TableHead><TableHead>Status</TableHead><TableHead>Reason</TableHead><TableHead>Requested</TableHead><TableHead>Action</TableHead></TableRow></TableHeader><TableBody>{records.map((record) => { const isSent = record.status === "sent"; const isResending = activeResendId === record.id && resend.isPending; return <TableRow key={record.id}><TableCell><strong>{record.name}</strong><small>{record.email}</small></TableCell><TableCell><span className="delivery-plan-list">{record.planNames.join(" · ")}</span></TableCell><TableCell><span className={`delivery-status ${isSent ? "sent" : "waiting"}`}>{isSent ? "Sent" : "Needs attention"}</span></TableCell><TableCell><span className="delivery-reason">{record.delayReason}</span>{record.errorMessage ? <small className="delivery-raw-error">Saved reason: {record.errorMessage}</small> : null}</TableCell><TableCell><time dateTime={record.createdAt.toISOString()}>{record.createdAt.toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" })}</time></TableCell><TableCell>{isSent ? <span className="delivery-done">Delivered</span> : <button className="delivery-resend" type="button" disabled={isResending} onClick={() => { setActiveResendId(record.id); resend.mutate({ requestId: record.id }); }}><RefreshCw size={14} />{isResending ? "Sending…" : "Resend PDFs"}</button>}</TableCell></TableRow>; })}</TableBody></Table></div>}</section></PublicLayout>;
+}
