@@ -57,6 +57,7 @@ export const appRouter = router({
         plans: payload.items.map((item) => ({ title: item.planName, storageKey: item.storageKey })),
       });
       if (result.status === "sent") await markPdfDeliverySent(created.deliveryRequestId, result.providerMessageId);
+      if (result.status === "limit_reached") await markPdfDeliveryFailed(created.deliveryRequestId, result.errorMessage);
       if (result.status === "failed") await markPdfDeliveryFailed(created.deliveryRequestId, result.errorMessage);
       return { ...created, deliveryStatus: result.status };
     }),

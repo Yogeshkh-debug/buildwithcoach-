@@ -229,3 +229,9 @@
 - [x] Replace the direct-download fallback with automatic Mailjet delivery of only the buyer’s selected PDFs.
 
 - [x] Diagnose the failed owner-approved Home Zero Mailjet test without logging secrets, correct the delivery error, and revalidate the buyer flow.
+
+- [x] Add a light, truthful note for a Mailjet delivery-limit or provider failure without affecting successful PDF delivery.
+- [x] Verify the new unavailable-delivery note and normal sent state at phone and desktop widths, then run regression checks.
+
+- [x] Save every buyer request before delivery, classify Mailjet daily-limit responses separately, and show the friendly delay note only for that limit outcome.
+- [x] Keep non-limit Mailjet failures separate from the daily-limit message and verify both buyer-facing states.

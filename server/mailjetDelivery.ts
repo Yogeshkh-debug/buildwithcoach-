@@ -15,6 +15,10 @@ type MailjetDeliveryInput = {
 
 const MAILJET_SEND_ENDPOINT = "https://api.mailjet.com/v3.1/send";
 
+export function isMailjetSendingLimit(statusCode: number, errorMessage: string) {
+  return statusCode === 429 || /(?:daily|hourly|sending|send)[\s\S]{0,40}(?:limit|quota)|(?:limit|quota)[\s\S]{0,40}(?:daily|hourly|sending|send)|too many requests/i.test(errorMessage);
+}
+
 function escapeHtml(value: string) {
   return value.replace(/[&<>'"]/g, (character) => ({
     "&": "&amp;",
@@ -46,6 +50,7 @@ export function buildMailjetPdfMessage(input: {
 export async function sendMailjetPdfDelivery(input: MailjetDeliveryInput): Promise<
   | { status: "sent"; providerMessageId: string }
   | { status: "validated" }
+  | { status: "limit_reached"; errorMessage: string }
   | { status: "failed"; errorMessage: string }
 > {
   const apiKey = process.env.MAILJET_API_KEY?.trim();
@@ -92,7 +97,9 @@ export async function sendMailjetPdfDelivery(input: MailjetDeliveryInput): Promi
     const sentMessage = payload.Messages?.[0];
     const messageId = sentMessage?.To?.[0]?.MessageUUID ?? (sentMessage?.To?.[0]?.MessageID ? String(sentMessage.To[0].MessageID) : undefined);
     if (!response.ok || sentMessage?.Status !== "success") {
-      return { status: "failed", errorMessage: sentMessage?.Errors?.[0]?.ErrorMessage || `Mailjet returned ${response.status}.` };
+      const errorMessage = sentMessage?.Errors?.[0]?.ErrorMessage || `Mailjet returned ${response.status}.`;
+      if (isMailjetSendingLimit(response.status, errorMessage)) return { status: "limit_reached", errorMessage };
+      return { status: "failed", errorMessage };
     }
     if (input.sandbox) return { status: "validated" };
     if (!messageId) return { status: "failed", errorMessage: "Mailjet accepted the request but did not return a message ID." };
