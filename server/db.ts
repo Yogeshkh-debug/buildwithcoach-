@@ -22,6 +22,30 @@ import { ENV } from "./_core/env";
 import { storagePut } from "./storage";
 import { assertSafeStoryImage } from "./security";
 import { freeStarterDeliveryItem, resolvePlanDeliveryItems } from "./planDelivery";
+import {
+  addSupabaseContactMessage,
+  addSupabaseNewsletterSubscriber,
+  addSupabaseStorySubmission,
+  createSupabaseCartRequest,
+  createSupabaseFreePlanSignup,
+  isSupabaseDatabaseConfigured,
+} from "./supabaseDb";
+import {
+  claimSupabaseWeeklyChallengeDelivery,
+  createSupabaseBuyerAccessCode,
+  getSupabaseBuyerChallengePreferences,
+  getSupabaseBuyerProgram,
+  listSupabaseBuyerPrograms,
+  listSupabaseWeeklyRecipients,
+  getSupabasePdfDeliveryPayload,
+  listSupabaseOwnerDeliveryRecords,
+  markSupabasePdfDeliveryFailed,
+  markSupabasePdfDeliverySent,
+  markSupabaseWeeklyChallengeFailed,
+  markSupabaseWeeklyChallengeSent,
+  redeemSupabaseBuyerAccessCode,
+  updateSupabaseBuyerChallengePreferences,
+} from "./supabaseBuyerDb";
 
 let _db: ReturnType<typeof drizzle> | null = null;
 let articleSeedPromise: Promise<void> | null = null;
@@ -127,6 +151,7 @@ export async function listFutureProducts() {
 }
 
 export async function addNewsletterSubscriber(input: { name?: string; email: string; source: string }) {
+  if (isSupabaseDatabaseConfigured()) return addSupabaseNewsletterSubscriber(input);
   const db = await getDb();
   if (!db) return { success: true, persisted: false };
   await db.insert(emailSubscribers).values({ name: input.name || null, email: input.email, consent: 1, source: input.source }).onDuplicateKeyUpdate({ set: { name: input.name || null, source: input.source, consent: 1 } });
@@ -134,6 +159,7 @@ export async function addNewsletterSubscriber(input: { name?: string; email: str
 }
 
 export async function addFreePlanSignup(input: { name: string; email: string; weeklyChallengeOptIn?: boolean; timeZone?: string }) {
+  if (isSupabaseDatabaseConfigured()) return createSupabaseFreePlanSignup(input);
   const db = await getDb();
   if (!db) return { success: true, persisted: false, freePlanSignupId: null };
   const weeklyChallengeOptIn = input.weeklyChallengeOptIn === true;
@@ -165,6 +191,9 @@ export async function addCartRequest(input: { name: string; email: string; planN
   const deliveryItems = resolvePlanDeliveryItems(input.planNames);
   const weeklyChallengeOptIn = input.weeklyChallengeOptIn === true;
   const timeZone = input.timeZone ?? "UTC";
+  if (isSupabaseDatabaseConfigured()) {
+    return createSupabaseCartRequest({ ...input, deliveryItems });
+  }
   const db = await getDb();
   if (!db) {
     return {
@@ -235,6 +264,7 @@ function hashBuyerAccessCode(email: string, code: string) {
 }
 
 export async function createBuyerAccessCode(email: string) {
+  if (isSupabaseDatabaseConfigured()) return createSupabaseBuyerAccessCode(email);
   const db = await getDb();
   if (!db) return null;
   const normalizedEmail = normalizeBuyerEmail(email);
@@ -265,6 +295,7 @@ export function selectRedeemableBuyerAccessCode<T extends BuyerAccessCodeCandida
 }
 
 export async function redeemBuyerAccessCode(input: { email: string; code: string }) {
+  if (isSupabaseDatabaseConfigured()) return redeemSupabaseBuyerAccessCode(input);
   const db = await getDb();
   if (!db) return false;
   const normalizedEmail = normalizeBuyerEmail(input.email);
@@ -292,6 +323,7 @@ export type BuyerProgram = {
 };
 
 export async function listBuyerPrograms(email: string): Promise<BuyerProgram[]> {
+  if (isSupabaseDatabaseConfigured()) return listSupabaseBuyerPrograms(email);
   const db = await getDb();
   if (!db) return [];
   const normalizedEmail = normalizeBuyerEmail(email);
@@ -314,6 +346,7 @@ export async function listBuyerPrograms(email: string): Promise<BuyerProgram[]> 
 }
 
 export async function getBuyerProgram(email: string, title: string): Promise<BuyerProgram | null> {
+  if (isSupabaseDatabaseConfigured()) return getSupabaseBuyerProgram(email, title);
   const programs = await listBuyerPrograms(email);
   return programs.find((program) => program.title === title) ?? null;
 }
@@ -326,6 +359,7 @@ export type WeeklyChallengeRecipient = {
 };
 
 export async function listWeeklyChallengeRecipients(): Promise<WeeklyChallengeRecipient[]> {
+  if (isSupabaseDatabaseConfigured()) return listSupabaseWeeklyRecipients();
   const db = await getDb();
   if (!db) return [];
   return db.select({
@@ -342,6 +376,7 @@ export async function listWeeklyChallengeRecipients(): Promise<WeeklyChallengeRe
 }
 
 export async function claimWeeklyChallengeDelivery(input: { subscriberId: number; weekKey: string; challengeKey: string }) {
+  if (isSupabaseDatabaseConfigured()) return claimSupabaseWeeklyChallengeDelivery(input);
   const db = await getDb();
   if (!db) return null;
   try {
@@ -359,6 +394,7 @@ export async function claimWeeklyChallengeDelivery(input: { subscriberId: number
 }
 
 export async function markWeeklyChallengeSent(input: { deliveryId: number; subscriberId: number; weekKey: string; providerMessageId: string }) {
+  if (isSupabaseDatabaseConfigured()) return markSupabaseWeeklyChallengeSent(input);
   const db = await getDb();
   if (!db) return false;
   await db.update(weeklyChallengeDeliveries).set({
@@ -372,6 +408,7 @@ export async function markWeeklyChallengeSent(input: { deliveryId: number; subsc
 }
 
 export async function markWeeklyChallengeFailed(deliveryId: number, errorMessage: string) {
+  if (isSupabaseDatabaseConfigured()) return markSupabaseWeeklyChallengeFailed(deliveryId, errorMessage);
   const db = await getDb();
   if (!db) return false;
   await db.update(weeklyChallengeDeliveries).set({
@@ -391,6 +428,7 @@ export async function isWeeklyChallengeScheduleActive(taskUid: string) {
 }
 
 export async function getBuyerChallengePreferences(email: string) {
+  if (isSupabaseDatabaseConfigured()) return getSupabaseBuyerChallengePreferences(email);
   const db = await getDb();
   if (!db) return { weeklyChallengeOptIn: false, timeZone: "UTC" };
   const records = await db.select({
@@ -405,6 +443,7 @@ export async function getBuyerChallengePreferences(email: string) {
 }
 
 export async function updateBuyerChallengePreferences(input: { email: string; weeklyChallengeOptIn: boolean; timeZone: string }) {
+  if (isSupabaseDatabaseConfigured()) return updateSupabaseBuyerChallengePreferences(input);
   const db = await getDb();
   if (!db) return false;
   await db.update(emailSubscribers).set({
@@ -434,6 +473,7 @@ export async function saveWeeklyChallengeSchedule(taskUid: string) {
 }
 
 export async function getPdfDeliveryPayload(requestId: number) {
+  if (isSupabaseDatabaseConfigured()) return getSupabasePdfDeliveryPayload(requestId);
   const db = await getDb();
   if (!db) return null;
 
@@ -445,6 +485,7 @@ export async function getPdfDeliveryPayload(requestId: number) {
 }
 
 export async function markPdfDeliverySent(requestId: number, providerMessageId: string) {
+  if (isSupabaseDatabaseConfigured()) return markSupabasePdfDeliverySent(requestId, providerMessageId);
   const db = await getDb();
   if (!db) return false;
   await db.update(pdfDeliveryRequests).set({
@@ -457,6 +498,7 @@ export async function markPdfDeliverySent(requestId: number, providerMessageId: 
 }
 
 export async function markPdfDeliveryFailed(requestId: number, errorMessage: string) {
+  if (isSupabaseDatabaseConfigured()) return markSupabasePdfDeliveryFailed(requestId, errorMessage);
   const db = await getDb();
   if (!db) return false;
   await db.update(pdfDeliveryRequests).set({
@@ -490,6 +532,7 @@ export function getFriendlyDeliveryReason(status: string, errorMessage: string |
 }
 
 export async function listOwnerDeliveryRecords(): Promise<OwnerDeliveryRecord[]> {
+  if (isSupabaseDatabaseConfigured()) return listSupabaseOwnerDeliveryRecords();
   const db = await getDb();
   if (!db) return [];
   const [requests, items] = await Promise.all([
@@ -529,6 +572,7 @@ export async function addWaitlistRequest(input: { name?: string; email: string }
 }
 
 export async function addContactMessage(input: { name: string; email: string; message: string }) {
+  if (isSupabaseDatabaseConfigured()) return addSupabaseContactMessage(input);
   const db = await getDb();
   if (!db) return { success: true, persisted: false };
   await db.insert(contactMessages).values(input);
@@ -536,6 +580,7 @@ export async function addContactMessage(input: { name: string; email: string; me
 }
 
 export async function addStorySubmission(input: { name: string; email: string; story: string; photoData: string; photoName: string; photoMime: "image/jpeg" | "image/png" | "image/webp"; consent: true }) {
+  if (isSupabaseDatabaseConfigured()) return addSupabaseStorySubmission(input);
   const db = await getDb();
   if (!db) return { success: true, persisted: false };
 

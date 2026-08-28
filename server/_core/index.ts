@@ -14,6 +14,7 @@ import { processWeeklyChallenges } from "../weeklyChallenges";
 import { getBuyerProgram } from "../db";
 import { verifyBuyerSession } from "../buyerSession";
 import { storageGetSignedUrl } from "../storage";
+import { downloadPrivateProgramPdf, isSupabaseConfigured } from "../supabase";
 import { getPrivatePdfHeaders } from "../buyerDownload";
 import { parse as parseCookie } from "cookie";
 
@@ -56,11 +57,15 @@ async function startServer() {
       const program = await getBuyerProgram(email, req.params.title);
       if (!program) return res.status(404).json({ error: "This PDF is not available for this buyer." });
 
-      const storageUrl = await storageGetSignedUrl(program.storageKey);
-      const fileResponse = await fetch(storageUrl);
-      if (!fileResponse.ok) return res.status(502).json({ error: "The private PDF could not be prepared." });
-
-      const pdfBytes = Buffer.from(await fileResponse.arrayBuffer());
+      let pdfBytes: Buffer;
+      if (isSupabaseConfigured) {
+        pdfBytes = (await downloadPrivateProgramPdf(program.storageKey)) ?? Buffer.alloc(0);
+      } else {
+        const storageUrl = await storageGetSignedUrl(program.storageKey);
+        const fileResponse = await fetch(storageUrl);
+        if (!fileResponse.ok) return res.status(502).json({ error: "The private PDF could not be prepared." });
+        pdfBytes = Buffer.from(await fileResponse.arrayBuffer());
+      }
       if (pdfBytes.subarray(0, 5).toString("ascii") !== "%PDF-") return res.status(502).json({ error: "The requested program is not a valid PDF." });
       return res.status(200).set(getPrivatePdfHeaders(program.fileName, pdfBytes.byteLength)).send(pdfBytes);
     } catch (error) {

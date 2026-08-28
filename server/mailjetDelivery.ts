@@ -1,4 +1,5 @@
 import { storageGetSignedUrl } from "./storage";
+import { downloadPrivateProgramPdf, isSupabaseConfigured } from "./supabase";
 
 export type MailjetDeliveryPlan = {
   title: string;
@@ -84,10 +85,15 @@ type DeliveryMessage = {
 
 async function loadPdfAttachments(plans: MailjetDeliveryPlan[]): Promise<EmailAttachment[]> {
   const attachments = await Promise.all(plans.map(async (plan) => {
-    const url = await storageGetSignedUrl(plan.storageKey);
-    const response = await fetch(url);
-    if (!response.ok) throw new Error(`Could not prepare ${plan.title} for email delivery.`);
-    const bytes = Buffer.from(await response.arrayBuffer());
+    let bytes: Buffer;
+    if (isSupabaseConfigured) {
+      bytes = (await downloadPrivateProgramPdf(plan.storageKey)) ?? Buffer.alloc(0);
+    } else {
+      const url = await storageGetSignedUrl(plan.storageKey);
+      const response = await fetch(url);
+      if (!response.ok) throw new Error(`Could not prepare ${plan.title} for email delivery.`);
+      bytes = Buffer.from(await response.arrayBuffer());
+    }
     if (bytes.subarray(0, 5).toString("ascii") !== "%PDF-") throw new Error(`${plan.title} is not a valid PDF attachment.`);
     return { filename: plan.fileName, content: bytes.toString("base64") };
   }));

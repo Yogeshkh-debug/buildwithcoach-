@@ -297,3 +297,21 @@
 - [ ] Activate the approved Sunday 6 PM local-time challenge job for opted-in PDF buyers after publication.
 
 - [x] Add the Sunday weekly-challenge opt-in checkbox to the initial free-starter email popup, not only the Buy PDF checkout popup.
+
+- [ ] Publish the verified badge-free current-hosting version rather than moving the incomplete full-stack workflow to a front-end-only Vercel deployment.
+
+- [x] Assess and confirm the specific Supabase primary database/storage and Cloudflare resilience roles before any buyer-data migration.
+- [x] Prepare a Vercel-compatible migration plan for private buyer records, program entitlements, PDF storage, and email delivery.
+- [x] Define idempotent, non-destructive Cloudflare resilience behavior that cannot create duplicate buyer records or mismatched program access.
+
+- [x] Use Supabase as the sole live buyer-data and private-PDF source, with Cloudflare D1 limited to a controlled backup copy for recovery; superseded by the later Supabase-only decision.
+- [x] Keep the migration limited to Supabase and Cloudflare; superseded by the later Supabase-only decision that removed Cloudflare.
+
+- [ ] Supabase-only migration: remove Cloudflare backup/fallback and use Supabase for the live database and private PDFs.
+
+- [x] Create the Supabase primary schema with buyer, delivery, access-code, consent, challenge, contact, article, and story tables using protected server-side access.
+- [x] Create private Supabase Storage buckets for program PDFs and community-story photos.
+- [x] Upload the five existing program PDFs to private Supabase Storage and preserve stable delivery mappings.
+- [x] Route checkout, free-starter, buyer access, delivery status, owner delivery records, weekly preferences, newsletter, contact, and story writes to Supabase when Supabase credentials are configured.
+- [x] Route protected PDF attachments and My Programs streams to private Supabase Storage when configured, with the current storage path retained only as a local compatibility fallback.
+- [ ] Finish the Vercel deployment adapter and remove obsolete current-hosting-only scheduler assumptions before publishing.

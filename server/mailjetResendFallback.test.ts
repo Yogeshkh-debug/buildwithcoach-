@@ -4,6 +4,11 @@ vi.mock("./storage", () => ({
   storageGetSignedUrl: vi.fn(async () => "https://signed.example/home-zero"),
 }));
 
+vi.mock("./supabase", () => ({
+  isSupabaseConfigured: false,
+  downloadPrivateProgramPdf: vi.fn(),
+}));
+
 import { isMailjetTechnicalFailure, sendMailjetPdfDelivery } from "./mailjetDelivery";
 
 const originalFetch = global.fetch;
