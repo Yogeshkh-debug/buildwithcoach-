@@ -2,8 +2,8 @@
   "buildCommand": "pnpm build",
   "outputDirectory": "dist/public",
   "functions": {
-    "api/index.ts": {
-      "includeFiles": "dist/public/**"
+    "api/index.mjs": {
+      "includeFiles": "dist/**"
     }
   },
   "crons": [
