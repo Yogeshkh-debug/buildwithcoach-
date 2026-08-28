@@ -62,16 +62,21 @@ export function selectWeeklyChallenge(weekKey: string) {
   return weeklyChallenges[Math.abs(sundayIndex) % weeklyChallenges.length]!;
 }
 
-export async function processWeeklyChallenges(input: { now?: Date; publicBaseUrl: string; taskUid: string }) {
-  if (!await isWeeklyChallengeScheduleActive(input.taskUid)) return { ok: true, skipped: "inactive_schedule", sent: 0, failed: 0 } as const;
+export async function processWeeklyChallenges(input: { now?: Date; publicBaseUrl: string; taskUid: string; globalSunday?: boolean }) {
+  if (!input.globalSunday && !await isWeeklyChallengeScheduleActive(input.taskUid)) return { ok: true, skipped: "inactive_schedule", sent: 0, failed: 0 } as const;
   const now = input.now ?? new Date();
   const recipients = await listWeeklyChallengeRecipients();
   let sent = 0;
   let failed = 0;
   let skipped = 0;
 
+  const utcWeekKey = input.globalSunday && now.getUTCDay() === 0
+    ? `${now.getUTCFullYear()}-${String(now.getUTCMonth() + 1).padStart(2, "0")}-${String(now.getUTCDate()).padStart(2, "0")}`
+    : null;
+  if (input.globalSunday && !utcWeekKey) return { ok: true, sent: 0, failed: 0, skipped: recipients.length } as const;
+
   for (const recipient of recipients) {
-    const weekKey = getSundayChallengeWindow(recipient.timeZone, now);
+    const weekKey = utcWeekKey ?? getSundayChallengeWindow(recipient.timeZone, now);
     if (!weekKey) { skipped += 1; continue; }
     const challenge = selectWeeklyChallenge(weekKey);
     const deliveryId = await claimWeeklyChallengeDelivery({ subscriberId: recipient.id, weekKey, challengeKey: challenge.key });

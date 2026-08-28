@@ -6,6 +6,9 @@
       "includeFiles": ["dist/public/**"]
     }
   },
+  "crons": [
+    { "path": "/api/scheduled/weekly-challenge", "schedule": "0 18 * * 0" }
+  ],
   "rewrites": [
     { "source": "/api/(.*)", "destination": "/api/index.ts" },
     { "source": "/(.*)", "destination": "/index.html" }

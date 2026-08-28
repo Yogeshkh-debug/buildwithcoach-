@@ -315,3 +315,5 @@
 - [x] Route checkout, free-starter, buyer access, delivery status, owner delivery records, weekly preferences, newsletter, contact, and story writes to Supabase when Supabase credentials are configured.
 - [x] Route protected PDF attachments and My Programs streams to private Supabase Storage when configured, with the current storage path retained only as a local compatibility fallback.
 - [x] Add and validate the Vercel serverless Express entrypoint and routing configuration; live publication remains a user-controlled final step.
+
+- [x] Keep weekly challenges scheduled for Sunday with explicit opt-in, idempotent delivery, and no duplicate sends; configured for one Vercel run each Sunday at 18:00 UTC, with activation after publication.

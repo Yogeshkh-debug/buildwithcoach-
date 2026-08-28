@@ -73,6 +73,23 @@ export async function createApp() {
       return res.status(500).json({ error: "The private PDF could not be opened." });
     }
   });
+  app.get("/api/scheduled/weekly-challenge", async (req, res) => {
+    try {
+      const cronSecret = process.env.CRON_SECRET?.trim();
+      if (!cronSecret || req.header("authorization") !== `Bearer ${cronSecret}`) {
+        return res.status(401).json({ ok: false, error: "Cron authorization required." });
+      }
+      const forwardedProto = req.header("x-forwarded-proto")?.split(",")[0]?.trim();
+      const protocol = forwardedProto === "https" || req.protocol === "https" ? "https" : "http";
+      const host = req.get("host");
+      if (!host) return res.status(400).json({ ok: false, error: "Missing request host." });
+      const result = await processWeeklyChallenges({ publicBaseUrl: `${protocol}://${host}`, taskUid: "vercel-weekly-sunday", globalSunday: true });
+      return res.status(200).json(result);
+    } catch (error) {
+      console.error("[WeeklyChallenge] Vercel Sunday delivery failed", error);
+      return res.status(500).json({ ok: false, error: "Weekly challenge delivery failed." });
+    }
+  });
   app.post("/api/scheduled/weekly-challenge", async (req, res) => {
     try {
       const actor = await sdk.authenticateRequest(req);
