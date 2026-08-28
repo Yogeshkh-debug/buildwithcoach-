@@ -317,3 +317,6 @@
 - [x] Add and validate the Vercel serverless Express entrypoint and routing configuration; live publication remains a user-controlled final step.
 
 - [x] Keep weekly challenges scheduled for Sunday with explicit opt-in, idempotent delivery, and no duplicate sends; configured for one Vercel run each Sunday at 18:00 UTC, with activation after publication.
+- [x] Fix the Vercel API rewrite and production serverless startup issues caused by conflicting entrypoints and development-only native Vite dependencies.
+- [x] Verify the live Vercel tRPC backend returns HTTP 200 and the unauthenticated Sunday route returns HTTP 401.
+- [ ] Add and verify the required production environment variables in Vercel before live buyer checkout, private PDF delivery, My Programs, and Sunday sending are used.
