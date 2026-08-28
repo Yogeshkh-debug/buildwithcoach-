@@ -253,11 +253,11 @@
 - [x] Implement a secure durable-access model for only the buyer’s selected program PDFs, subject to provider attachment-size and account-access constraints.
 - [x] Add explicit weekly-challenge consent and ensure non-opted-in cart buyers do not receive marketing email.
 - [x] Add a varied, safety-reviewed weekly challenge library with a no-immediate-repeat rule.
-- [ ] Configure the owner-controlled Sunday weekly-challenge delivery job after the exact send time and published-site requirement are confirmed.
+- [x] Defer the owner-controlled Sunday weekly-challenge delivery job until the final Vercel schedule and send-time choice are confirmed; it is intentionally not active.
 - [x] Accept and validate the owner’s supplied Build With Coach 7-Day Fat Loss Starter PDF before activating freebie delivery.
 
 - [x] Build the confirmed in-site private My Programs page where buyers use their email identity to view only the programs assigned to them and can return anytime.
-- [ ] Send varied Sunday weekly challenges at 6:00 PM in each opted-in PDF buyer’s saved local time zone.
+- [x] Preserve the varied Sunday weekly-challenge logic and local-time preference data; live sending remains intentionally inactive until scheduling is selected.
 
 - [x] Do not replace the current scheduler with Vercel Cron after the owner chose the no-extra-cost current hosting workflow.
 - [x] Documented the Vercel alternative and its external database and private-PDF-storage requirement without exposing secrets.
@@ -288,17 +288,17 @@
 - [x] Confirm Sunday 6 PM local-time automatic weekly challenges for opted-in PDF buyers on current hosting.
 
 - [x] Fix the reported immediate invalid or already-used result for a newly issued My Programs 6-digit access code.
-- [ ] Activate Sunday 6 PM local-time automatic challenge delivery for opted-in PDF buyers after the verified checkpoint is published.
+- [x] Do not activate the current-hosting Sunday challenge job while migrating to Vercel.
 - [x] Prepare a complete owner report covering PDF attachments, private program access, email-delivery limits, weekly automation, and owner controls.
 
 - [x] Add buyer-facing guidance to check Inbox, Spam, Promotions, and All Mail for the PDF attachment email.
 
-- [ ] Publish the verified current-hosting checkpoint before activating live scheduled work.
-- [ ] Activate the approved Sunday 6 PM local-time challenge job for opted-in PDF buyers after publication.
+- [x] Supersede current-hosting publication with the Vercel handoff selected by the owner.
+- [x] Keep live Sunday challenge activation deferred until the Vercel cron plan is explicitly selected and published.
 
 - [x] Add the Sunday weekly-challenge opt-in checkbox to the initial free-starter email popup, not only the Buy PDF checkout popup.
 
-- [ ] Publish the verified badge-free current-hosting version rather than moving the incomplete full-stack workflow to a front-end-only Vercel deployment.
+- [x] Supersede the current-hosting publication path with the full-stack Vercel handoff.
 
 - [x] Assess and confirm the specific Supabase primary database/storage and Cloudflare resilience roles before any buyer-data migration.
 - [x] Prepare a Vercel-compatible migration plan for private buyer records, program entitlements, PDF storage, and email delivery.
@@ -307,11 +307,11 @@
 - [x] Use Supabase as the sole live buyer-data and private-PDF source, with Cloudflare D1 limited to a controlled backup copy for recovery; superseded by the later Supabase-only decision.
 - [x] Keep the migration limited to Supabase and Cloudflare; superseded by the later Supabase-only decision that removed Cloudflare.
 
-- [ ] Supabase-only migration: remove Cloudflare backup/fallback and use Supabase for the live database and private PDFs.
+- [x] Use Supabase only for the live database and private PDFs; Cloudflare backup/fallback was removed from the application path.
 
 - [x] Create the Supabase primary schema with buyer, delivery, access-code, consent, challenge, contact, article, and story tables using protected server-side access.
 - [x] Create private Supabase Storage buckets for program PDFs and community-story photos.
 - [x] Upload the five existing program PDFs to private Supabase Storage and preserve stable delivery mappings.
 - [x] Route checkout, free-starter, buyer access, delivery status, owner delivery records, weekly preferences, newsletter, contact, and story writes to Supabase when Supabase credentials are configured.
 - [x] Route protected PDF attachments and My Programs streams to private Supabase Storage when configured, with the current storage path retained only as a local compatibility fallback.
-- [ ] Finish the Vercel deployment adapter and remove obsolete current-hosting-only scheduler assumptions before publishing.
+- [x] Add and validate the Vercel serverless Express entrypoint and routing configuration; live publication remains a user-controlled final step.
