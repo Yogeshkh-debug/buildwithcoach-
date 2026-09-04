@@ -26,7 +26,7 @@ export const articleSeeds: ArticleSeed[] = [
       "If you think bodybuilding is only for giant guys who look like they sleep in a supplement store, relax.",
       "You do not need to become a comic-book character before you start training.",
     ],
-    cover: { src: "/manus-storage/beginner-guide-cover-approved_3db11ff1.jpg", alt: "Beginner strength guide cover" },
+    cover: { src: "https://pgsolmoepgolpvuwhcyb.supabase.co/storage/v1/object/public/site-images/site/articles/bodybuilding-for-beginners-cover.webp", alt: "Beginner strength guide cover" },
     sections: [
       { title: "What Bodybuilding Really Is", paragraphs: ["Bodybuilding is just structured training plus nutrition. That’s it. Not magic. Not secret juice. Not ‘only eat rice at 3:17 PM’ nonsense.", "The real formula is simple: train with a plan, eat for your goal, and repeat it long enough for your body to actually change."] },
       { title: "Why Beginners Have an Advantage", paragraphs: ["Beginners get fast progress because the body responds quickly to basic training. This is often called newbie gains.", "You do not need advanced tricks. You need the basics."], bullets: ["Strength goes up faster", "Muscle growth can happen quickly", "Posture and confidence can improve"] },
@@ -42,7 +42,7 @@ export const articleSeeds: ArticleSeed[] = [
     excerpt: "Fat loss is simple. Your brain makes it complicated.",
     category: "Fat loss",
     intro: ["Most fat loss plans are designed by people who think hunger is a personality trait: eat almost nothing, do insane cardio, suffer daily.", "That is why most people quit."],
-    cover: { src: "/manus-storage/fat-loss-cover-approved_4c5a878c.jpg", alt: "Structured fat loss guide cover" },
+    cover: { src: "https://pgsolmoepgolpvuwhcyb.supabase.co/storage/v1/object/public/site-images/site/articles/fat-loss-cover.png", alt: "Structured fat loss guide cover" },
     sections: [
       { title: "Why Most Fat Loss Plans Fail", paragraphs: ["That is not a fat loss problem. That is a bad plan problem."], bullets: ["They are too extreme", "They are too complicated", "They treat one bad day like a complete failure"] },
       { title: "What Fat Loss Actually Needs", paragraphs: ["Fat loss really needs only three things. Everything else is decoration."], bullets: ["A calorie deficit", "Enough protein", "Consistency over time"] },
@@ -58,7 +58,7 @@ export const articleSeeds: ArticleSeed[] = [
     excerpt: "Spoiler: both work. Here’s how to choose.",
     category: "Training basics",
     intro: ["Some people act like the gym is a sacred temple. Others act like home workouts are the holy answer. Both sides are overconfident."],
-    cover: { src: "/manus-storage/home-gym-cover-approved_6ae728e7.jpg", alt: "Home training compared with a gym strength setup" },
+    cover: { src: "https://pgsolmoepgolpvuwhcyb.supabase.co/storage/v1/object/public/site-images/site/articles/home-vs-gym-cover.webp", alt: "Home training compared with a gym strength setup" },
     sections: [
       { title: "The Real Answer", paragraphs: ["Fat loss does not care where you train. Fat loss cares whether you stay consistent.", "You can lose fat at home. You can lose fat in a gym. You can also fail in both places if you keep quitting."] },
       { title: "Home Workouts", paragraphs: ["Home is a useful start when it makes showing up easier."], bullets: ["No travel time", "Easy to start", "Less intimidating", "Good for beginners", "Limited equipment", "Harder to progress long term"] },
@@ -74,7 +74,7 @@ export const articleSeeds: ArticleSeed[] = [
     excerpt: "Stop overcomplicating it. Here’s the number that matters.",
     category: "Nutrition",
     intro: ["Protein gets treated like magic dust. It is not magic. It is just one of the most useful tools for building muscle, keeping muscle, and staying full."],
-    cover: { src: "/manus-storage/protein-men-cover-approved_440d4900.jpg", alt: "Protein nutrition guide cover" },
+    cover: { src: "https://pgsolmoepgolpvuwhcyb.supabase.co/storage/v1/object/public/site-images/site/articles/protein-for-men-cover.webp", alt: "Protein nutrition guide cover" },
     sections: [
       { title: "Why Protein Matters", paragraphs: ["Protein supports recovery, muscle building, and staying full longer."], bullets: ["Muscle repair", "Muscle building", "Recovery", "Fat loss support", "Staying full longer"] },
       { title: "How Much You Need", paragraphs: ["A simple target for most men is 1.6 to 2.2 grams of protein per kilogram of bodyweight. If you weigh 80 kg, that is roughly 130 to 175 grams per day."] },
@@ -90,7 +90,7 @@ export const articleSeeds: ArticleSeed[] = [
     excerpt: "It’s not motivation. It’s your system.",
     category: "Mindset",
     intro: ["The pattern is always the same: new plan, new excitement, new ‘this time I’m serious.’ Then two weeks later, one bad day destroys the whole thing.", "That is not a motivation problem. That is a system problem."],
-    cover: { src: "/manus-storage/why-quitting-cover-approved_839f5953.jpg", alt: "Why you keep quitting guide cover" },
+    cover: { src: "https://pgsolmoepgolpvuwhcyb.supabase.co/storage/v1/object/public/site-images/site/articles/why-you-keep-quitting-cover.jpg", alt: "Why you keep quitting guide cover" },
     sections: [
       { title: "Why Motivation Is Not Enough", paragraphs: ["Motivation disappears. That is normal. If your plan depends on motivation, it is already weak."] },
       { title: "Why People Quit", paragraphs: ["Quitting usually comes from a plan that cannot survive a normal life."], bullets: ["The plan is too extreme", "There is no structure", "There is no progress tracking", "One bad meal becomes a full restart"] },
@@ -106,7 +106,7 @@ export const articleSeeds: ArticleSeed[] = [
     excerpt: "Get warm, practise the movement, then lift. Stop turning the warm-up into another workout.",
     category: "Workout prep",
     intro: ["A warm-up has one job: make your first working set feel like a continuation, not a surprise attack.", "You do not need twenty random drills and a phone timer. You need a little heat, the movement you are about to train, and a few lighter sets."],
-    cover: { src: "/manus-storage/warmup-cover-approved_558d9d93.jpg", alt: "Seven-minute warm-up guide cover" },
+    cover: { src: "https://pgsolmoepgolpvuwhcyb.supabase.co/storage/v1/object/public/site-images/site/articles/warmup-cover.webp", alt: "Seven-minute warm-up guide cover" },
     sections: [
       { title: "The Strict Coach Rule", paragraphs: ["Warm up for the workout you are about to do. Do not copy a circus routine because someone online had fancy bands.", "If you are squatting, prepare to squat. If you are pressing, prepare to press. Keep the goal obvious."] },
       { title: "The Simple 7-Minute Warm-Up", paragraphs: ["Use this before most beginner strength sessions. Keep the pace easy enough to breathe, but not so easy that nothing changes."], bullets: ["2 minutes brisk walking, cycling, or marching", "8 controlled bodyweight squats", "8 hip hinges with hands on thighs", "8 wall or incline push-ups", "10 band pull-aparts or slow arm circles", "2 to 3 lighter practice sets of your first exercise"] },
@@ -122,7 +122,7 @@ export const articleSeeds: ArticleSeed[] = [
     excerpt: "More sweat is not better training. Fix these simple mistakes and make each rep count.",
     category: "Form fixes",
     intro: ["You do not need perfect genetics or a loud gym personality. You do need to stop wasting good effort on sloppy habits.", "Fix one thing at a time. Training gets better when your next rep has a purpose."],
-    cover: { src: "/manus-storage/training-mistakes-cover-approved_13cad1bb.jpg", alt: "Training mistakes form-fix guide cover" },
+    cover: { src: "https://pgsolmoepgolpvuwhcyb.supabase.co/storage/v1/object/public/site-images/site/articles/training-mistakes-cover.jpg", alt: "Training mistakes form-fix guide cover" },
     sections: [
       { title: "Mistake 1: Rushing Every Rep", paragraphs: ["Fast reps can hide weak positions. Slow the lowering phase just enough to control it, then use a steady, deliberate lift.", "If you cannot control the weight, it is controlling you."] },
       { title: "Mistake 2: Adding Weight Before You Earn It", paragraphs: ["More weight is only progress when your form survives it. First add clean reps. Then add a small amount of load.", "Your ego does not get credit for the rep. Your muscles do."] },
@@ -138,7 +138,7 @@ export const articleSeeds: ArticleSeed[] = [
     excerpt: "The practical safety facts, the myths, and the small group that should ask a clinician first.",
     category: "Nutrition & supplements",
     intro: ["Creatine gets blamed for almost everything: kidney problems, hair loss, bloating, and scale weight. Most of that fear comes from half-read claims instead of a clear look at what the evidence actually says.", "Here is the useful version: for most healthy adults, creatine monohydrate is one of the better-studied supplements. It is a small tool, not a personality, and it never replaces training, food, or sleep."],
-    cover: { src: "/manus-storage/creatine-guide-cover-approved_cf02b947.jpg", alt: "Creatine guide cover" },
+    cover: { src: "https://pgsolmoepgolpvuwhcyb.supabase.co/storage/v1/object/public/site-images/site/articles/creatine-cover.jpg", alt: "Creatine guide cover" },
     sections: [
       { title: "The 60-Second Version", paragraphs: ["Creatine helps your muscles rapidly remake energy for short, hard efforts such as lifting, sprinting, and repeated high-intensity work. Your body already makes some, and food supplies a little more.", "A supplement simply raises the amount stored in muscle. Plain creatine monohydrate is the simple, commonly used option."] },
       { title: "Kidneys: What Actually Matters", paragraphs: ["In healthy adults using normal doses, current evidence does not show creatine monohydrate damaging kidney function. A blood marker called creatinine can rise because of normal creatine turnover, so that result needs context.", "If you have kidney disease, take medication that affects kidney function, or have been told to restrict supplements, do not guess. Ask your clinician first."] },
@@ -156,7 +156,7 @@ export const articleSeeds: ArticleSeed[] = [
     excerpt: "The best time is the time that helps you hit your daily protein target without making life harder.",
     category: "Nutrition & supplements",
     intro: ["People turn protein timing into a stress test. They carry a shaker around like a fire alarm, worried they will miss a magical post-workout window.", "The boring truth wins: total daily protein is the main job. Whey is simply a convenient way to fill a gap when food is not practical."],
-    cover: { src: "/manus-storage/whey-guide-cover-approved_999e12f9.jpg", alt: "Whey protein guide cover" },
+    cover: { src: "https://pgsolmoepgolpvuwhcyb.supabase.co/storage/v1/object/public/site-images/site/articles/whey-protein-cover.jpg", alt: "Whey protein guide cover" },
     sections: [
       { title: "What Whey Protein Is For", paragraphs: ["Whey is a fast, convenient protein source. It is not better than a solid meal just because it comes in a scoop.", "Use it when it helps you reach a useful daily target, especially when a meal is not available or your meals run low on protein."] },
       { title: "After Training: Useful, Not Magical", paragraphs: ["A shake after training is convenient, but you do not need to panic if you eat a protein-rich meal later. Get a normal protein serving within the next few hours and keep the full day on track.", "If you trained fasted or will not eat soon, whey after the session is a practical move. If you already had a protein-rich meal before lifting, the clock matters much less."] },

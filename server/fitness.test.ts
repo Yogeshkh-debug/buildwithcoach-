@@ -73,16 +73,24 @@ describe("public article procedures", () => {
     ].map(async (slug) => ({ slug, body: JSON.parse((await caller.articles.bySlug({ slug }))!.body) as { cover?: { src?: string } } })));
 
     expect(covers.map(({ slug, body }) => ({ slug, src: body.cover?.src }))).toEqual([
-      { slug: "bodybuilding-for-beginners", src: expect.stringContaining("beginner-guide-cover-approved") },
-      { slug: "lose-fat-without-losing-your-mind", src: expect.stringContaining("fat-loss-cover-approved") },
-      { slug: "home-vs-gym-workouts", src: expect.stringContaining("home-gym-cover-approved") },
-      { slug: "protein-for-men", src: expect.stringContaining("protein-men-cover-approved") },
-      { slug: "why-you-keep-quitting", src: expect.stringContaining("why-quitting-cover-approved") },
-      { slug: "warm-up-that-actually-helps", src: expect.stringContaining("warmup-cover-approved") },
-      { slug: "fix-common-training-mistakes", src: expect.stringContaining("training-mistakes-cover-approved") },
-      { slug: "creatine-safety-basics", src: expect.stringContaining("creatine-guide-cover-approved") },
-      { slug: "when-to-take-whey-protein", src: expect.stringContaining("whey-guide-cover-approved") },
+      { slug: "bodybuilding-for-beginners", src: expect.stringContaining("bodybuilding-for-beginners-cover.webp") },
+      { slug: "lose-fat-without-losing-your-mind", src: expect.stringContaining("fat-loss-cover.png") },
+      { slug: "home-vs-gym-workouts", src: expect.stringContaining("home-vs-gym-cover.webp") },
+      { slug: "protein-for-men", src: expect.stringContaining("protein-for-men-cover.webp") },
+      { slug: "why-you-keep-quitting", src: expect.stringContaining("why-you-keep-quitting-cover.jpg") },
+      { slug: "warm-up-that-actually-helps", src: expect.stringContaining("warmup-cover.webp") },
+      { slug: "fix-common-training-mistakes", src: expect.stringContaining("training-mistakes-cover.jpg") },
+      { slug: "creatine-safety-basics", src: expect.stringContaining("creatine-cover.jpg") },
+      { slug: "when-to-take-whey-protein", src: expect.stringContaining("whey-protein-cover.jpg") },
     ]);
+  }, 10_000);
+
+  it("keeps public image covers on Supabase instead of unavailable Manus storage", async () => {
+    const ctx = { user: null, req: {} as TrpcContext["req"], res: {} as TrpcContext["res"] } as TrpcContext;
+    const caller = appRouter.createCaller(ctx);
+    const articles = await caller.articles.list();
+    const articleSources = articles.map((article) => (JSON.parse(article.body) as { cover?: { src?: string } }).cover?.src ?? "");
+    expect([...programCatalog.map((plan) => plan.cover), ...articleSources].every((src) => src.startsWith("https://pgsolmoepgolpvuwhcyb.supabase.co/storage/v1/object/public/site-images/") && !src.includes("/manus-storage/"))).toBe(true);
   }, 10_000);
 });
 

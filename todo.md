@@ -320,3 +320,10 @@
 - [x] Fix the Vercel API rewrite and production serverless startup issues caused by conflicting entrypoints and development-only native Vite dependencies.
 - [x] Verify the live Vercel tRPC backend returns HTTP 200 and the unauthenticated Sunday route returns HTTP 401.
 - [x] Add and verify the required production environment variables in Vercel before live buyer checkout, private PDF delivery, My Programs, and Sunday sending are used.
+
+- [ ] Repair missing production hero, PDF cover, and article images on the Vercel deployment; verify asset loading at desktop and mobile widths.
+- [ ] Confirm production-safe asset references are committed and redeployed without changing unrelated site behavior.
+- [ ] Run regression tests, TypeScript, production build, and live Vercel image checks before final handoff.
+
+- [ ] Retry the image-repair production redeploy after the live site still showed missing images.
+- [ ] Prepare a clear emergency copy-paste prompt explaining the image-path failure, cause, affected files, and safe fix.
