@@ -321,9 +321,15 @@
 - [x] Verify the live Vercel tRPC backend returns HTTP 200 and the unauthenticated Sunday route returns HTTP 401.
 - [x] Add and verify the required production environment variables in Vercel before live buyer checkout, private PDF delivery, My Programs, and Sunday sending are used.
 
-- [ ] Repair missing production hero, PDF cover, and article images on the Vercel deployment; verify asset loading at desktop and mobile widths.
-- [ ] Confirm production-safe asset references are committed and redeployed without changing unrelated site behavior.
-- [ ] Run regression tests, TypeScript, production build, and live Vercel image checks before final handoff.
+- [x] Repair missing production hero, PDF cover, and article images on the Vercel deployment; verify asset loading at desktop and mobile widths.
+- [x] Confirm production-safe asset references are committed and redeployed without changing unrelated site behavior.
+- [x] Run regression tests, TypeScript, production build, and live Vercel image checks before final handoff.
 
-- [ ] Retry the image-repair production redeploy after the live site still showed missing images.
-- [ ] Prepare a clear emergency copy-paste prompt explaining the image-path failure, cause, affected files, and safe fix.
+- [x] Retry the image-repair production redeploy after the live site still showed missing images.
+- [x] Prepare a clear emergency copy-paste prompt explaining the image-path failure, cause, affected files, and safe fix.
+
+- [ ] Audit the live article and program image mapping for wrong assignments and duplicate artwork.
+- [ ] Repair incorrect image assignments and remove unintended duplicate use while preserving approved source files.
+- [ ] Fix image frame sizing so hero, program covers, article covers, and inline visuals use correct contain-fit behavior without cropping.
+- [ ] Redeploy and verify every affected live route at desktop and mobile widths.
+- [ ] Update the emergency copy-paste repair prompt with the new mapping and cropping failure details.
