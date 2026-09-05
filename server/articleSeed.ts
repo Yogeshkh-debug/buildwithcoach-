@@ -90,7 +90,7 @@ export const articleSeeds: ArticleSeed[] = [
     excerpt: "It’s not motivation. It’s your system.",
     category: "Mindset",
     intro: ["The pattern is always the same: new plan, new excitement, new ‘this time I’m serious.’ Then two weeks later, one bad day destroys the whole thing.", "That is not a motivation problem. That is a system problem."],
-    cover: { src: "https://pgsolmoepgolpvuwhcyb.supabase.co/storage/v1/object/public/site-images/site/articles/why-you-keep-quitting-cover.jpg", alt: "Why you keep quitting guide cover" },
+    cover: { src: "https://pgsolmoepgolpvuwhcyb.supabase.co/storage/v1/object/public/site-images/site/articles/why-you-keep-quitting-unique.jpg", alt: "Why you keep quitting guide cover" },
     sections: [
       { title: "Why Motivation Is Not Enough", paragraphs: ["Motivation disappears. That is normal. If your plan depends on motivation, it is already weak."] },
       { title: "Why People Quit", paragraphs: ["Quitting usually comes from a plan that cannot survive a normal life."], bullets: ["The plan is too extreme", "There is no structure", "There is no progress tracking", "One bad meal becomes a full restart"] },
@@ -106,7 +106,7 @@ export const articleSeeds: ArticleSeed[] = [
     excerpt: "Get warm, practise the movement, then lift. Stop turning the warm-up into another workout.",
     category: "Workout prep",
     intro: ["A warm-up has one job: make your first working set feel like a continuation, not a surprise attack.", "You do not need twenty random drills and a phone timer. You need a little heat, the movement you are about to train, and a few lighter sets."],
-    cover: { src: "https://pgsolmoepgolpvuwhcyb.supabase.co/storage/v1/object/public/site-images/site/articles/warmup-cover.webp", alt: "Seven-minute warm-up guide cover" },
+    cover: { src: "https://pgsolmoepgolpvuwhcyb.supabase.co/storage/v1/object/public/site-images/site/articles/warmup-unique.jpg", alt: "Seven-minute warm-up guide cover" },
     sections: [
       { title: "The Strict Coach Rule", paragraphs: ["Warm up for the workout you are about to do. Do not copy a circus routine because someone online had fancy bands.", "If you are squatting, prepare to squat. If you are pressing, prepare to press. Keep the goal obvious."] },
       { title: "The Simple 7-Minute Warm-Up", paragraphs: ["Use this before most beginner strength sessions. Keep the pace easy enough to breathe, but not so easy that nothing changes."], bullets: ["2 minutes brisk walking, cycling, or marching", "8 controlled bodyweight squats", "8 hip hinges with hands on thighs", "8 wall or incline push-ups", "10 band pull-aparts or slow arm circles", "2 to 3 lighter practice sets of your first exercise"] },
